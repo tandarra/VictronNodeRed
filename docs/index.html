@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tandarra Victron ESS - Live</title>
+<style>
+:root{--bg:#0b1220;--panel:#0f192a;--line:#26364f;--text:#e8eef7;--mute:#9fb0c8;--amber:#ffb22e;--blue:#3aa0ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 48px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.16em;color:var(--amber)}
+h1{margin:6px 0 8px;font-size:clamp(28px,5vw,44px);line-height:1.1}
+p{color:var(--mute);line-height:1.5;margin:0 0 20px;max-width:60ch}
+.frame{border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+iframe{display:block;width:100%;height:800px;border:0}
+.links{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px}
+a.btn{padding:10px 16px;border-radius:8px;border:1px solid var(--line);color:var(--text);text-decoration:none;font-weight:600}
+a.btn.primary{background:var(--blue);border-color:var(--blue);color:#06101d}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">TANDARRA ENERGY</div>
+<h1>Victron ESS, live</h1>
+<p>Read-only live view of the installation from Victron VRM, controlled by the Node-RED ESS controller in this repository.</p>
+<div class="frame">
+<iframe src="https://vrm.victronenergy.com/installation/515169/embed/4cdbd49d" title="Victron VRM live view" loading="lazy"></iframe>
+</div>
+<div class="links">
+<a class="btn primary" href="https://vrm.victronenergy.com/installation/515169/share/20610da3">Open in VRM</a>
+<a class="btn" href="https://github.com/tandarra/VictronNodeRed">Source on GitHub</a>
+</div>
+</main>
+</body>
+</html>

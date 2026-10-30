@@ -4,7 +4,7 @@
 
 Node-RED ESS controller for the Tandarra Victron system at Pokeno, NZ, with the Home Assistant pool automation that follows it.
 
-**[View the installation live on VRM](https://vrm.victronenergy.com/installation/515169/share/20610da3)** (read-only share link)
+**[Live view (embedded VRM)](https://tandarra.github.io/VictronNodeRed/)** · [Open in VRM](https://vrm.victronenergy.com/installation/515169/share/20610da3) (read-only)
 
 | | |
 |---|---|

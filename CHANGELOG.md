@@ -2,6 +2,9 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## Live page - 2026-10-30
+- `docs/index.html`: GitHub Pages page embedding the VRM live view (Pages source: `main`, folder `/docs`). README links to it.
+
 ## v16.5 docs - 2026-10-30
 - README rewritten with hero images (`docs/`), VRM live link and system overview.
 - `homeassistant/`: pool controller documentation, the load-shed automation and the list of changes to `packages/pool_solar.yaml` (PV-surplus bypass, late run, load shed).
