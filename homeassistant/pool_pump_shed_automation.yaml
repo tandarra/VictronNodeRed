@@ -1,0 +1,84 @@
+# Home Assistant automation (UI automation, id 1793316592819)
+# Needs helper: input_boolean.pool_pump_shed  ("Pool pump shed", mdi:pump-off)
+#
+# When AC loads stay above 8 kW this sets the shed flag. The pool_solar
+# controller (packages/pool_solar.yaml) then stops the heat pump, runs the pump
+# on for its 3 min cooldown and switches it off. After 3 min under 5 kW the flag
+# clears and the controller decides what runs. If the pool controller is
+# disabled (input_boolean.pool_solar_enabled off) the pump is switched directly.
+# Skipped in the Mon-Fri 21:00-23:59 free power window. The flag is also
+# cleared at 19:00 and 21:00 so it can never go stale.
+alias: Pool pump - shed on high AC load
+description: Load shed for the pool pump (see header of homeassistant/pool_pump_shed_automation.yaml in tandarra/VictronNodeRed)
+mode: restart
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.gx_device_consumption_power_l1
+    above: 8000
+    for: "00:00:10"
+    id: shed
+  - trigger: numeric_state
+    entity_id: sensor.gx_device_consumption_power_l1
+    below: 5000
+    for: "00:03:00"
+    id: restore
+  - trigger: time
+    at: "19:00:00"
+    id: reset
+  - trigger: time
+    at: "21:00:00"
+    id: reset
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: shed
+          - condition: state
+            entity_id: switch.pool_controller_filtration
+            state: "on"
+          - condition: not
+            conditions:
+              - condition: time
+                after: "21:00:00"
+                before: "23:59:59"
+                weekday: [mon, tue, wed, thu, fri]
+        sequence:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.pool_pump_shed
+          - if:
+              - condition: state
+                entity_id: input_boolean.pool_solar_enabled
+                state: "off"
+            then:
+              - action: switch.turn_off
+                target:
+                  entity_id: switch.pool_controller_filtration
+      - conditions:
+          - condition: trigger
+            id: restore
+          - condition: state
+            entity_id: input_boolean.pool_pump_shed
+            state: "on"
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.pool_pump_shed
+          - if:
+              - condition: state
+                entity_id: input_boolean.pool_solar_enabled
+                state: "off"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: switch.pool_controller_filtration
+      - conditions:
+          - condition: trigger
+            id: reset
+          - condition: state
+            entity_id: input_boolean.pool_pump_shed
+            state: "on"
+        sequence:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.pool_pump_shed

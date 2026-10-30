@@ -2,6 +2,10 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.5 docs - 2026-10-30
+- README rewritten with hero images (`docs/`), VRM live link and system overview.
+- `homeassistant/`: pool controller documentation, the load-shed automation and the list of changes to `packages/pool_solar.yaml` (PV-surplus bypass, late run, load shed).
+
 ## v16.5 - 2026-10-30
 **Fix: daily energy counters wiped on redeploy**
 - Problem: after a redeploy (11:57 today) `ESS Grid Export Today` and `ESS AC Consumption Today` restarted from 0 (HA card showed 3.7 kWh while the meter and VRM showed 19.7 kWh). The `Energy snapshot` node publishes the retained `victron/ess/energy_today` message on every tick, so the first tick after deploy overwrote the saved totals with zeros before the `Reseed after restart` node could restore them.
