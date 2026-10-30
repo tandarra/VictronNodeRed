@@ -2,6 +2,12 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.5 - 2026-10-30
+**Fix: daily energy counters wiped on redeploy**
+- Problem: after a redeploy (11:57 today) `ESS Grid Export Today` and `ESS AC Consumption Today` restarted from 0 (HA card showed 3.7 kWh while the meter and VRM showed 19.7 kWh). The `Energy snapshot` node publishes the retained `victron/ess/energy_today` message on every tick, so the first tick after deploy overwrote the saved totals with zeros before the `Reseed after restart` node could restore them.
+- Fix: `Energy snapshot` now holds off publishing until `Reseed after restart` has run (stale or valid snapshot) or 30 s have passed. New flow variables `energyReseedDone`, `energySnapT0`.
+- Tested offline: fresh deploy publishes nothing, reseed restores 16.27 / 20.44 kWh, next tick publishes the restored totals, fallback after 30 s, stale snapshot path.
+
 ## v16.4 - 2026-10-30
 **Big-solar-day export (replaces the v16.3 per-tick PV trigger)**
 - Problem: v16.3 re-evaluated PV every tick, so cloud passing over the array would switch export on and off and the battery would not be emptied in time for the ~14.5kW the arrays can charge at.
