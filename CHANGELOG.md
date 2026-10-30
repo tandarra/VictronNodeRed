@@ -2,6 +2,9 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## Auto-merge - 2026-10-30
+- `.github/workflows/sync-main.yml`: pushes to `claude/*` branches are merged into `main` automatically (no PR needed).
+
 ## Live page - 2026-10-30
 - `docs/index.html`: GitHub Pages page embedding the VRM live view (Pages source: `main`, folder `/docs`). README links to it.
 

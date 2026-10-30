@@ -1,0 +1,36 @@
+# Auto-merge anything pushed to a claude/* branch into main.
+# Fast-forwards when possible, otherwise makes a merge commit.
+# If the merge conflicts the job fails and main is left untouched.
+name: Sync claude branches into main
+
+on:
+  push:
+    branches:
+      - "claude/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-main
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge into main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          if git merge --ff-only "${GITHUB_SHA}"; then
+            echo "Fast-forwarded main"
+          else
+            git merge --no-ff -m "Merge ${GITHUB_REF_NAME} into main" "${GITHUB_SHA}"
+          fi
+          git push origin main
