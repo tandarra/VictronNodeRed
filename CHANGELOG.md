@@ -2,6 +2,14 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.9 - 2026-11-06
+**No exporting below 60% SoC while rain / thunderstorm is forecast**
+- While the weather hold applies (rain, heavy rain or thunderstorm forecast before 19:00) the battery is no longer exported below `weatherImpact.minSocPct` (60%): at or below 60% the setpoint goes to -150 W, and export only resumes once SoC climbs back to `resumeSocPct` (62%), so the setpoint doesn't flap around the line. This matters on days when the dynamic floor is low (e.g. big forecast days, floor 25-35%), so rain/storm can no longer pull the pack under 60% when PV may not refill it for the evening.
+- Only the EXPORT is stopped. MinSoC is deliberately NOT raised: a MinSoC above the current SoC makes the Victron ESS grid-charge the battery (seen with BALANCE mode earlier). The house load is still served from the battery, so SoC can still drift below 60% under load with no PV.
+- The latch resets when the hold ends (weather clears or 19:00). Dry days, missing weather data, DYNAMIC (19:00 / 20:00 shed), FREECHARGE and FAULT are unaffected.
+- Node status shows `WX HOLD <label> cap <W> (SoC floor 60%)`; `state.weatherHold.atMinSoc` is published.
+- Tested offline with a 35% dynamic floor: rain at 75% and 61% exports at -2000 W, stops at 60%, stays stopped at 61% (latched), resumes at 62.5%; storm stays at -150 W; rain plus an armed big-day latch at 58% gives -150 W; dry still exports -9500 W; latch cleared when the weather clears.
+
 ## v16.8 - 2026-11-06
 **Rain / thunderstorm now HOLD the daytime export instead of changing the targets**
 - Design change after v16.6/v16.7: the existing 19:00 (65% checkpoint) and 20:00 (21:00 target) evening shed already brings SoC down, so the weather no longer touches the 21:00 target or the daytime floor. Both bumps are removed and `Forecast Adjuster` is back to its original logic with the 43% absolute minimum (`forecastMinTarget` 43). The target is 43% in every condition.
