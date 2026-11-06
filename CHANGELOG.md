@@ -2,6 +2,13 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.7 - 2026-11-06
+**21:00 target never below 43%, and the big-day export stops quickly when a storm arrives**
+- Problem 1: `forecastMinTarget` was 32, so a high forecast could pull the 21:00 target below the 43% base. 43% is the absolute bottom in any condition. `CONFIG.forecastMinTarget` is now 43 (and the Forecast Adjuster fallback), so the forecast can no longer lower the target; weather only raises it: dry 43, rain 49, heavy rain 53, thunderstorm 57.
+- Problem 2: the v16.4 big-day latch kept exporting at -9000 W (mode NORMAL, SoC under the floor) after a thunderstorm arrived and PV collapsed, draining the battery to about 50% with almost no PV left to refill it. The latch only released after PV stayed under 3 kW for 45 minutes and ignored the weather.
+- Fix: when a fresh `weatherImpact` shows heavy rain or a thunderstorm in the remaining daylight (severity >= 2), the low-PV timeout is `pvBigDayStormLowPvMin` (5 min, new CONFIG key) instead of `pvBigDayLowPvMin` (45 min). Ordinary rain and missing/stale weather data keep the 45 min behaviour. It still re-arms if PV climbs back over 8000 W.
+- Tested offline: storm and heavy rain with PV 1 kW for 6 min release the latch (-9000 -> -150 W); 2 min, rain only, no weather data and PV above 3 kW keep exporting; no weather data releases at 46 min as before.
+
 ## v16.6 - 2026-11-06
 **Rain and thunderstorms now change the controller's behaviour**
 - Problem: the forecast only fed the controller as a kWh number. The 21:00 target adjustment (`min(forecast% x 0.6, 25)`) was already at its 25-point cap at 17.4 kWh, so a thunderstorm day got the same 32% target as any other day and nothing branched on the weather. The parser also used the DAILY weather code (worst of the whole day), so a storm at 3am labelled the whole day.
