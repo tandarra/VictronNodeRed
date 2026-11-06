@@ -2,6 +2,17 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.6 - 2026-11-06
+**Rain and thunderstorms now change the controller's behaviour**
+- Problem: the forecast only fed the controller as a kWh number. The 21:00 target adjustment (`min(forecast% x 0.6, 25)`) was already at its 25-point cap at 17.4 kWh, so a thunderstorm day got the same 32% target as any other day and nothing branched on the weather. The parser also used the DAILY weather code (worst of the whole day), so a storm at 3am labelled the whole day.
+- New node `Weather impact (rain/storm)` between `Open-Meteo API` and `Forecast parser`. It reads the HOURLY weather codes, precipitation (mm) and probability for the remaining daylight hours (now to sunset) and writes `flow.weatherImpact`. The message passes through unchanged, so the parser is untouched and `flow.weather` is not overwritten.
+- Severity: rain (codes 51-57/61/63/66/80/81 at >= 50% probability, or >= 0.5 mm/h), heavy rain (65/67/82 or >= 4 mm/h), thunderstorm (95/96/99).
+- `Forecast Adjuster`: weekday 21:00 target +6 / +10 / +14 and daytime floor +0 / +3 / +5 (floor capped at 95). The floor bump applies on weekends too. Ignored if the forecast is invalid or the impact is older than 3 h (covers the `EAI_AGAIN` DNS failures). The PV forecast is deliberately NOT cut again: the POA radiation data already reflects cloud.
+- `Build Open-Meteo URL`: also requests hourly `precipitation`.
+- New CONFIG block `weatherImpact` (all bumps and thresholds in one place). `State publisher` adds `state.weatherImpact`. New node added to group 7 and to the forecast error catch scope. Tab label and CONFIG header bumped to v16.6.
+- Node IDs in `flows.json` now match the live Cerbo flow (a re-import had regenerated them), so Import > Replace updates the existing tab instead of duplicating it.
+- Tested offline: dry, rain, heavy rain and thunderstorm later today, storm already passed, stale (4 h) impact, invalid forecast, weekend, malformed payload. Thunderstorm on a 17.4 kWh day gives target 46% / floor 85%; rain gives 38% / 80%.
+
 ## Auto-merge - 2026-10-30
 - `.github/workflows/sync-main.yml`: pushes to `claude/*` branches are merged into `main` automatically (no PR needed).
 

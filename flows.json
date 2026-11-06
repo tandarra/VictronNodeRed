@@ -1,16 +1,16 @@
 [
     {
-        "id": "c7500b69ae0a5e29",
+        "id": "f2d3b29112c78fc5",
         "type": "tab",
-        "label": "ESS Controller v16.5 - Dynamic Day",
+        "label": "ESS Controller v16.6 - Dynamic Day",
         "disabled": false,
         "info": "TANDARRA ESS CONTROLLER v15\n===========================\nVictron ESS tariff controller for Contact Energy Good Nights\n(free power Mon-Fri 21:00-24:00 NZ time).\n\nARCHITECTURE\n  1. CORE CONTROL LOOP (60s)  - phase -> forecast adjust -> trajectory -> safety gate -> ESS writes\n  2. LIVE INPUTS              - SoC, BMS CCL, grid power, AC load (real-dt integration)\n  3. SOLAR PV                 - 5x MPPT power + daily yield aggregation\n  4. FORECAST & SUN           - Open-Meteo POA model per array, sunrise/sunset (DST-safe)\n  5. ENERGY & PERSISTENCE     - free-window accumulator, daily energy snapshot,\n                                restart-safe reseed from retained MQTT\n  6. SAFETY & OVERRIDES       - stale watchdog, startup hold, HA manual override\n\nALL tunable parameters live in ONE place: the CONFIG block inside\n'Phase Logic + CONFIG' in the Core Control Loop group.\n\nWHAT CHANGED IN v15\n  - Export bands are now RELATIVE to the active daytime floor, not\n    absolute SoC. The floor is dynamic (Forecast Adjuster can drop it\n    to dynamicFloorMinAbs on high-forecast days) but the old bands were\n    hardcoded at 90/85/82/80 - so whenever the floor fell below 80 the\n    switch fell through to -150W and silently disabled export in the\n    exact window the dynamic floor exists to create.\n  - Band values raised: -9500 / -7000 / -5000 / -2000 (was -9500 /\n    -5000 / -2000 / -500). At -7000W the pack moves ~0.5% SoC per 60s\n    tick, so there is no overshoot risk against the floor.\n  - NEW: PV full-export override. While PV exceeds pvFullExportOnW the\n    setpoint is forced to exportBandFull regardless of band, because\n    above that level surplus arrives faster than the lower bands can\n    shed it and the excess just lands in the battery. Latching\n    hysteresis (on 8kW / off 7kW) prevents setpoint chatter on\n    partly-cloudy days. Published as state.pv.fullExportOverride.\n  - The override only applies in EXPORT mode. Below the floor, climbing\n    is the desired behaviour, and forcing full export there would pull\n    the pack down through the floor to feed the grid.\n\nMQTT TOPICS PUBLISHED (broker: HA Mosquitto 192.168.1.15)\n  victron/ess/state            - full controller state (every 60s)\n  victron/ess/routing          - PV/battery/grid routing breakdown (every 60s)\n  victron/ess/free_charge_kwh  - Phase C import + $ saved (retained)\n  victron/ess/energy_today     - daily accumulators snapshot (retained, used for reseed)\n  victron/ess/battery_time     - time-to-empty / time-to-full (retained)\n  victron/ess/sun              - sunrise/sunset/weekend cutoff (retained)\n  victron/ess/status           - online/offline (LWT)\n\nMQTT TOPICS SUBSCRIBED\n  victron/override             - true/1/on = force NORMAL -150W (retained)\n  victron/ess/energy_today     - self-subscription for restart reseed\n\nNOTES\n  - GSL battery manages charge AND discharge via CCL; CCL taper near 100%\n    is normal (it also clips the MPPTs - cclA is published for graphing).\n  - Grid import/export kWh are software-integrated from MultiPlus ActiveIn\n    power with real time deltas (vebus energy counters unavailable).\n  - Sunrise/sunset come from Open-Meteo with timezone=Pacific/Auckland;\n    DST is handled automatically as long as the Cerbo is on NZ time.\n  - Optional hardening: enable localfilesystem context in settings.js.\n    The MQTT reseed already covers restarts without it.\n",
         "env": []
     },
     {
-        "id": "66cbde9f2ea33ee7",
+        "id": "8ac6ee2588c2472d",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "1 · CORE CONTROL LOOP — 60 s decision cycle",
         "style": {
             "label": true,
@@ -21,15 +21,15 @@
             "stroke": "#2e5cb8"
         },
         "nodes": [
-            "86c1436592fb07a8",
-            "500cb1d4818780ce",
-            "7033a4edcfc3c890",
-            "74e219637c123ae3",
-            "7047cebad054c6b5",
-            "89350924c7d4d3a1",
-            "2338948fef99e728",
-            "39f0db33e84b3725",
-            "fb15480bd2558e29"
+            "cff3ad79e694b026",
+            "5fed2ea21cf4b5e9",
+            "691360b014a3deaf",
+            "cec014f2478a905c",
+            "6c73dc47798735c5",
+            "d6bd8fa525baba58",
+            "70b861ceb3a06478",
+            "228bc6f019a004c6",
+            "5d582c421d9cf9f3"
         ],
         "x": 34,
         "y": 19,
@@ -37,9 +37,9 @@
         "h": 162
     },
     {
-        "id": "a3f1782f5a972f94",
+        "id": "8d192930a27de8a5",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "2 · STATE & ENERGY PUBLISHING (MQTT → HA)",
         "style": {
             "label": true,
@@ -50,12 +50,12 @@
             "stroke": "#0e7490"
         },
         "nodes": [
-            "a41cb20c7833af46",
-            "fc941a59e6cdb68b",
-            "178746dfa190d73c",
-            "31d5ff5cef7d0f72",
-            "5ecce33238bffc87",
-            "dc51f90c27f0fe01"
+            "afa3fbd88f962cce",
+            "3862958a9c293383",
+            "8099b63cbd13d49c",
+            "e035021f316f5d96",
+            "d0134390258275ee",
+            "d9a8d28828d9604a"
         ],
         "x": 1474,
         "y": 199,
@@ -63,9 +63,9 @@
         "h": 242
     },
     {
-        "id": "21a1d086a4890eec",
+        "id": "d8ac1dcfdeb44316",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "3 · BATTERY RUNTIME ANALYTICS",
         "style": {
             "label": true,
@@ -75,9 +75,9 @@
             "stroke": "#7c3aed"
         },
         "nodes": [
-            "8d77a4f613b7366b",
-            "17624ce5c7483475",
-            "3912b8b88c35a7f4"
+            "82be1c7b419a3444",
+            "9115664191961a24",
+            "335617a7e718b026"
         ],
         "x": 34,
         "y": 199,
@@ -85,9 +85,9 @@
         "h": 82
     },
     {
-        "id": "6c9d6e1d1739fc95",
+        "id": "04ef772e2f571be7",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "4 · SAFETY, OVERRIDES & RESTART PERSISTENCE",
         "style": {
             "label": true,
@@ -98,14 +98,14 @@
             "stroke": "#b91c1c"
         },
         "nodes": [
-            "737cafd14f3ceb86",
-            "e767c1ae997a5e02",
-            "ffcbef3039d0eac6",
-            "9ec6d0f3ecc55117",
-            "5d8b52249f7418a4",
-            "fc7296aea837374a",
-            "cebbbd504144d706",
-            "51ffa9c94cba8fef"
+            "13e3fd5d5ec7a796",
+            "01152f9334d7240b",
+            "0568333949cf1250",
+            "b60d518dc453dfd9",
+            "74aeaa3d70b61a02",
+            "5b4be2c03858427c",
+            "051b06208cbcbbc2",
+            "65dc76469996c39b"
         ],
         "x": 34,
         "y": 299,
@@ -113,9 +113,9 @@
         "h": 322
     },
     {
-        "id": "570daa6e36729840",
+        "id": "6a9791fa52853577",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "5 · LIVE INPUTS — Victron DBus",
         "style": {
             "label": true,
@@ -126,14 +126,14 @@
             "stroke": "#15803d"
         },
         "nodes": [
-            "f3c7e558f34d1c50",
-            "f31d2a424a623a40",
-            "0fa418dee75ad2fc",
-            "a0dc0e3c034299fd",
-            "2a92f0874b8b76b1",
-            "f39830af0e72e92c",
-            "6ffcf28cd0179cf7",
-            "5010701828a1398b"
+            "fa874430f17d4b26",
+            "4fd606660cd9b9bc",
+            "545242a5cd6605fc",
+            "8d4d7cb9f04737fd",
+            "e9d8cefeb08ee7bf",
+            "60e1054565c6d74c",
+            "7fb8d699585ed3a9",
+            "ef4cd12173bacc23"
         ],
         "x": 694,
         "y": 299,
@@ -141,9 +141,9 @@
         "h": 322
     },
     {
-        "id": "60be42488b9d4c60",
+        "id": "c9515232d285298b",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "6 · SOLAR PV — 5× MPPT power & yield",
         "style": {
             "label": true,
@@ -154,28 +154,28 @@
             "stroke": "#ca8a04"
         },
         "nodes": [
-            "b7a0fc26e8a7fab2",
-            "a18d94d5425d9b65",
-            "8b63fbffee2ad3ec",
-            "6f3bb2aba1a511a7",
-            "d4e1e3173b101988",
-            "9b6bbca32ba6909d",
-            "08608b910d838e19",
-            "492fc65a97ae49ac",
-            "cd99a1cc1bb8f674",
-            "fdc224bf9eabd1c0",
-            "cc75eb8dd60dc3df",
-            "391e666126faaf9c",
-            "45e6b7447eaae83b",
-            "e219369962af1ce5",
-            "2ae8dc369de36c25",
-            "d4094e01cba62b9b",
-            "906c6d8e3bd29eb2",
-            "c02dc1108dc39bb9",
-            "133087591861e002",
-            "62ba79378fbc04c6",
-            "bfc7c117a4b923ce",
-            "84fa7872c51a6544"
+            "502be93cf86a7791",
+            "da34aa15560afc8b",
+            "b91d24df66d75d67",
+            "cb06f1fd68664ca3",
+            "9f4abcd6b0e2bfd8",
+            "c41ef2339240d2c1",
+            "2353f2a4463b42ee",
+            "b919598dba40f517",
+            "3df7c909a545f327",
+            "cb525280f2828bee",
+            "037a10c86d99a45e",
+            "d83a93d60262f015",
+            "f3bc68ee3a14a3e0",
+            "af325664e5f0bbc2",
+            "9b5540dc85eb1cf1",
+            "a5a805856266c3fb",
+            "5d1e8ddb5e601e6d",
+            "cfb11e8cad206d6f",
+            "86db1fe62a1b192a",
+            "16e9d537f01f5cab",
+            "c9b495cb03f4b0ef",
+            "b678fab6bdc7a163"
         ],
         "x": 34,
         "y": 639,
@@ -183,9 +183,9 @@
         "h": 322
     },
     {
-        "id": "7cf25c0f6e7ef6db",
+        "id": "6d4d5c152b181fe8",
         "type": "group",
-        "z": "c7500b69ae0a5e29",
+        "z": "f2d3b29112c78fc5",
         "name": "7 · FORECAST, WEATHER & SUN — Open-Meteo (DST-safe)",
         "style": {
             "label": true,
@@ -196,16 +196,17 @@
             "stroke": "#c2410c"
         },
         "nodes": [
-            "d6652f67ea7f5a06",
-            "2de6fc067cd2a236",
-            "50d9f79c89753b42",
-            "24fb3227bdf1c232",
-            "14f1cc1d4f0f5d5c",
-            "f920923f991c50c0",
-            "3bd03a7eaadac8c2",
-            "664e99ab9a22895a",
-            "85abeee8c1bd3999",
-            "82dbf0be144297d3"
+            "19c0fbe2fb920efb",
+            "6940d122bdae713f",
+            "ab25eba66c419302",
+            "ac73e0efcb252b47",
+            "ec865749e0ba8175",
+            "19eb161beef752e7",
+            "e1b20cac37e45bf3",
+            "b0a29679301f1436",
+            "9d9124ae794f39e4",
+            "0241742c7b71f7f4",
+            "wx_impact_v166"
         ],
         "x": 34,
         "y": 979,
@@ -213,10 +214,10 @@
         "h": 222
     },
     {
-        "id": "86c1436592fb07a8",
+        "id": "cff3ad79e694b026",
         "type": "inject",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Tick — 60 s",
         "props": [
             {
@@ -234,20 +235,20 @@
         "y": 100,
         "wires": [
             [
-                "500cb1d4818780ce",
-                "8d77a4f613b7366b",
-                "a241dd9cd9fb3030",
-                "dda4085d7be0584d"
+                "5fed2ea21cf4b5e9",
+                "82be1c7b419a3444",
+                "d7c1933b9ae4649a",
+                "75d4e615cd56cbc3"
             ]
         ]
     },
     {
-        "id": "500cb1d4818780ce",
+        "id": "5fed2ea21cf4b5e9",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Phase Logic + CONFIG  ✍ edit parameters here",
-        "func": "// ================================================================\n//  TANDARRA ESS v16.4 - CONFIG  (single source of truth)\n//  Every tunable parameter for the whole controller lives HERE.\n// ================================================================\nconst CONFIG = {\n\n    // -- Tariff / free window (Contact Energy Good Nights) --------\n    freeWindowStartHour:   21,     // free import starts 21:00\n    freeWindowStartMinute:  0,     // window always ends at midnight\n    activeDays: [1,2,3,4,5],       // Mon-Fri only (Sat/Sun: no free power)\n    freeRateNZD:         0.48,     // $/kWh value of free import (0.425 + GST)\n\n    // -- SoC targets (%) ------------------------------------------\n    targetSocAt2100:      43,      // base pre-discharge target at 21:00 (forecast lowers it)\n    checkpointSocBy2000:  65,      // evening trajectory checkpoint at 20:00\n    minSocNormal:         20,      // ESS hard minimum (protect / fault)\n    minSocFreeCharge:    100,      // ESS min-SoC written during Phase C grid charge\n    daytimeFloorWeekday:  80,      // soft daytime floor Mon-Fri\n    daytimeFloorWeekend:  85,      // weekend export floor (before cutoff)\n\n    // -- Weekend behaviour (no free window: protect the battery) --\n    weekendUseSunsetCutoff:     true,\n    weekendExportCutoffFixed:   15.0,  // fallback hour if sunset unknown\n    weekendCutoffOffsetWinter:   3.0,  // hours before sunset at winter solstice (Jun 21)\n    weekendCutoffOffsetSummer:   1.0,  // hours before sunset at summer solstice (Dec 21)\n    weekendExportMarginPct:        2,  // % above floor before exporting\n    weekendFullSoC:              100,  // charge to this after cutoff\n    weekendExportFloorAfterFull:  98,  // once full, export surplus down to this\n\n    // -- Grid setpoints (W) - MultiPlus-II 48/10000 (8000W cont. @25C) --\n    // -9500 is a request, not a promise: the inverter delivers what it can\n    // (loads first, remainder exported). Left at -9500 so export is never\n    // the limiting factor.\n    setpointNormal:       -150,    // anti-import bias / safe default\n    setpointExport:      -9500,    // active export ceiling - matches real 9500W inverter rating\n    setpointFreeCharge:   9000,    // Phase C forced grid charge (house + charger)\n    maxExportSetpoint:   -9500,    // hard ceiling = inverter continuous limit (confirmed 9500W)\n    minExportSetpoint:    -150,\n\n    // -- Daytime export bands (W) ---------------------------------\n    // v15: these are RELATIVE to the ACTIVE daytime floor, not absolute\n    // SoC. See the EXPORT case in 'ESS Controller' for why.\n    exportBandFull:      -9500,    // >= floor +10 points\n    exportBandStrong:    -7000,    // floor +5  .. +10\n    exportBandGentle:    -5000,    // floor +2  .. +5\n    exportBandMinimal:   -2000,    // floor +0  .. +2\n\n    // -- PV full-export override (v15, latching) -------------------\n    // While PV is above pvFullExportOnW the array is making surplus\n    // faster than the lower bands can shed it, so throttling just\n    // parks the excess in the battery and SoC climbs anyway. Force\n    // exportBandFull instead. Hysteresis stops setpoint chatter when\n    // PV hunts around the threshold on a partly-cloudy day.\n    pvFullExportOnW:      8000,    // engage above this\n    pvFullExportOffW:     7000,    // release below this\n\n    // -- Big-solar-day export (v16.4) -------------------------------\n    // The array can charge the battery at up to ~14.5kW but the inverter\n    // only passes ~8kW AC, so on a big solar day the battery fills fast\n    // unless it is emptied by exporting hard. The FIRST time PV exceeds\n    // pvFullExportOnW (8000W) on a day the forecast says is big\n    // (isBigForecastDay: bigDayForecastKwh), the day is LATCHED and we\n    // export at pvSurplusExportW in EXPORT/NORMAL/PROTECT, whatever the\n    // cloud does to PV in between. It stops when:\n    //   - SoC drops under pvSurplusExportMinSoc (re-arms at ResumeSoc), or\n    //   - it is too late in the day (sunset - pvBigDayEndBeforeSunsetH,\n    //     or pvBigDayEndFallbackHour when sunset is unknown), or\n    //   - PV stays under pvBigDayLowPvW for pvBigDayLowPvMin minutes\n    //     (a bust day; re-arms if PV climbs back over pvFullExportOnW).\n    pvSurplusExportW:         -9000,  // setpoint while the big-day latch is active\n    pvSurplusExportMinSoc:       40,  // drop out below this SoC\n    pvSurplusExportResumeSoc:    43,  // re-engage only at/above this (stops flapping at 40)\n    pvBigDayEndBeforeSunsetH:     3,  // stop this many hours before sunset\n    pvBigDayEndFallbackHour:   16.5,  // stop time if sunset unknown (16:30)\n    pvBigDayLowPvW:            3000,  // 'PV has collapsed' threshold\n    pvBigDayLowPvMin:            45,  // minutes under the threshold before giving up for now\n\n    // -- Control behaviour -----------------------------------------\n    exportMarginPct:        5,     // % SoC headroom above trajectory before export\n    setpointDeadbandW:    300,     // min change before DBus rewritten\n    setpointReassertSec:  300,     // force-rewrite DBus every 5 min regardless\n    socStaleTimeoutSec:   120,     // SoC older than this => PROTECT/FAULT\n    loopIntervalSec:       60,     // must match the 60s inject\n    batteryCapacityKwh: 28.68,     // 2x GSL051280A-B-GBP2\n    averageHouseLoadW:   1400,     // fallback if live load unavailable\n    overnightEndHour:       8,     // hold -150W until this hour (no solar)\n    noExportBeforeHour:     8,     // v16.1: HARD guard in 'ESS Controller' - setpoint never\n                                   //   more negative than setpointNormal (-150W) before this\n                                   //   hour, whatever mode is requested (FREECHARGE exempt,\n                                   //   big-day pre-dawn export exempt down to its 40% target).\n                                   //   Keeps the battery for breakfast; sunrise ~06:30, PV\n                                   //   is producing usefully by ~08:00.\n\n    // -- Forecast / site -------------------------------------------\n    forecastMaxAdjustPct: 25,      // max % forecast can lower the 21:00 target\n    forecastMinTarget:    32,      // forecast can never push target below this\n    latitude:  -37.2540109,        // 31A Leathem Crescent, Pokeno 2402, NZ\n    longitude: 175.0050308,\n    systemEfficiency:   0.82,\n    solarArrays: [\n        { name: 'ENE',    azimuth:  57, tilt: 23, capacityKw: 6.09 },\n        { name: 'NNW/NW', azimuth: 326, tilt: 23, capacityKw: 7.83 },\n        { name: 'WSW',    azimuth: 237, tilt: 23, capacityKw: 5.52 },\n    ],\n\n    // -- Dynamic daytime floor (v16: hourly surplus headroom) ------\n    // The MultiPlus can pass at most exportCeilingKw of AC (export + house\n    // + pool). Any PV above that, hour by hour, can ONLY go into the\n    // battery. The floor is set so the battery has exactly enough room\n    // left for the surplus still to come today:\n    //     track = 100 - remainingSurplus% - surplusTargetMarginPct\n    //     floor = track - surplusFloorBelowTrackPct\n    // SoC is steered onto 'track' (early export makes the room); the floor\n    // sits well below it so the controller keeps full export while SoC\n    // rides the track, and only protects if SoC falls well under it.\n    // Both rise through the day as the surplus is used up, so SoC reaches\n    // ~100% as the surplus ends instead of at 11am.\n    // Loads (pool heat pump etc.) don't change the surplus - they only\n    // change the export/load split of the same 9.5kW.\n    exportCeilingKw:        8.0,   // v16: REAL AC egress limit (export + all AC loads). Datasheet\n                                   //   48/10000: 8000W @25C, 7000W @40C, 6000W @65C continuous.\n                                   //   Observed 25-Sep-2026 11:54: 14.6kW PV -> 8.2kW AC out\n                                   //   (5.4 load + 2.8 export) + 5.8kW into battery.\n    surplusTargetMarginPct:  3,    // end-of-surplus headroom (CCL taper near full)\n    surplusFloorBelowTrackPct: 12, // floor = track - this (keeps full export band while on track)\n    dynamicFloorMinAbs:      35,   // weekday: never lower than this (free charge 21:00 refills)\n    dynamicFloorMinAbsWeekend: 50, // weekend: never lower than this (no free charge)\n    weekendDynamicFloor:   true,\n\n    // -- Big forecast day bottom (v16.1) --------------------------------\n    // From bigDayFloorFromHour on a big forecast day, the floor's bottom\n    // clamp drops so the morning export empties the battery further. Once\n    // PV exceeds the inverter ceiling the MPPTs charge the battery\n    // directly on the DC bus (e.g. 14kW PV -> ~8kW AC + ~6kW battery), so\n    // more empty battery = more PV harvested instead of clipped.\n    // The floor still = max(bottom, track - 12) and rises through the day\n    // as the surplus is used; from 09:00 the confidence ratio scales the\n    // forecast down on a bust day, which lifts the floor automatically.\n    bigDayForecastKwh:        60,  // remaining-day forecast at/above this (latched for the day)\n    bigDayFloorFromHour:       8,  // lower bottom applies from this hour\n    bigDayTiers: [                 // v16.2: bottom SoC by the day's peak forecast (kWh, highest first)\n        { kwh: 100, floor: 25 },   //   forecast >= 100kWh -> may drain to 25%\n        { kwh:  80, floor: 30 },   //   forecast >=  80kWh -> may drain to 30%\n    ],                             //   below the lowest tier: normal dynamicFloorMinAbs applies\n    bigDayFloorMinAbs:        25,  // (v16.1, superseded by bigDayTiers - unused)\n    bigDayFloorMinAbsWeekend: 40,  // weekend bottom on big days (no free charge that night)\n\n    // -- Big-day pre-dawn export (v16.1) --------------------------------\n    // Once PV is up, the battery can only drain at (ceiling - PV), so by\n    // 08:00 there's little time left to make room. On a big forecast day,\n    // export from the battery BEFORE dawn instead, timed to land at\n    // bigDayPreDawnTargetSoc by bigDayPreDawnTargetHour (drain = ceiling\n    // minus forecast PV, walked back hour by hour, plus a margin). Holds\n    // the target until 08:00 (breakfast reserve), then the big-day floor\n    // takes over. Weekday this is last night's free charge sold at 8c.\n    bigDayPreDawnExport:      true,\n    bigDayPreDawnTargetSoc:     40,   // % to reach by the target hour (breakfast reserve)\n    bigDayPreDawnTargetHour:   7.5,   // 07:30\n    bigDayPreDawnEarliestHour: 3.0,   // never start before 03:00\n    bigDayPreDawnMarginH:     0.25,   // start this much earlier than the calc says   // v16: apply the surplus floor on Sat/Sun too (before cutoff)\n\n    // -- Early export on surplus days (v16) ---------------------------\n    // The battery can only be drained as fast as (exportCeilingKw - PV),\n    // so once PV reaches the ceiling (~9am in summer) no more room can be\n    // made. On surplus days the overnight hold therefore ends early enough\n    // to bring SoC down to the floor BEFORE the surplus starts - walked\n    // back hour by hour from the forecast profile. Weekday pre-dawn export\n    // is energy bought free in last night's 21:00-24:00 window, sold at 8c.\n    overnightEndMinHour:        8.0,   // v16.1: early export may not start before 08:00 (breakfast reserve)\n    earlyExportMarginH:         0.5,   // start this much earlier than the calc says\n};\nflow.set('config', CONFIG);\n\n// ---------------- Phase determination ---------------------------\n// Weekdays : Phase B (managed day)  00:00-21:00\n//            Phase C (free charge)  21:00-24:00\n// Weekends : Phase A (self-consume + surplus export, never grid-charge)\n// The 00:00-08:00 overnight hold is applied inside the Trajectory Engine.\nconst now      = new Date();\nconst totalMin = now.getHours() * 60 + now.getMinutes();\nconst dow      = now.getDay();\nconst freeStart = CONFIG.freeWindowStartHour * 60 + CONFIG.freeWindowStartMinute;\n\nconst isActiveDay = CONFIG.activeDays.includes(dow);\nconst isWeekend   = !isActiveDay;\n\nconst phase = isActiveDay ? (totalMin >= freeStart ? 'C' : 'B') : 'A';\n\nflow.set('phase', phase);\nflow.set('isWeekend', isWeekend);\nflow.set('lastTick', now.getTime());\n\nconst colour = phase === 'C' ? 'green' : phase === 'B' ? 'blue' : 'grey';\nnode.status({ fill: colour, shape: 'dot',\n    text: 'Phase ' + phase + (isWeekend ? ' (weekend)' : '') + ' | ' + now.toLocaleTimeString() });\n\nmsg.phase     = phase;\nmsg.isWeekend = isWeekend;\nreturn msg;",
+        "func": "// ================================================================\n//  TANDARRA ESS v16.6 - CONFIG  (single source of truth)\n//  Every tunable parameter for the whole controller lives HERE.\n// ================================================================\nconst CONFIG = {\n\n    // -- Tariff / free window (Contact Energy Good Nights) --------\n    freeWindowStartHour:   21,     // free import starts 21:00\n    freeWindowStartMinute:  0,     // window always ends at midnight\n    activeDays: [1,2,3,4,5],       // Mon-Fri only (Sat/Sun: no free power)\n    freeRateNZD:         0.48,     // $/kWh value of free import (0.425 + GST)\n\n    // -- SoC targets (%) ------------------------------------------\n    targetSocAt2100:      43,      // base pre-discharge target at 21:00 (forecast lowers it)\n    checkpointSocBy2000:  65,      // evening trajectory checkpoint at 20:00\n    minSocNormal:         20,      // ESS hard minimum (protect / fault)\n    minSocFreeCharge:    100,      // ESS min-SoC written during Phase C grid charge\n    daytimeFloorWeekday:  80,      // soft daytime floor Mon-Fri\n    daytimeFloorWeekend:  85,      // weekend export floor (before cutoff)\n\n    // -- Weekend behaviour (no free window: protect the battery) --\n    weekendUseSunsetCutoff:     true,\n    weekendExportCutoffFixed:   15.0,  // fallback hour if sunset unknown\n    weekendCutoffOffsetWinter:   3.0,  // hours before sunset at winter solstice (Jun 21)\n    weekendCutoffOffsetSummer:   1.0,  // hours before sunset at summer solstice (Dec 21)\n    weekendExportMarginPct:        2,  // % above floor before exporting\n    weekendFullSoC:              100,  // charge to this after cutoff\n    weekendExportFloorAfterFull:  98,  // once full, export surplus down to this\n\n    // -- Grid setpoints (W) - MultiPlus-II 48/10000 (8000W cont. @25C) --\n    // -9500 is a request, not a promise: the inverter delivers what it can\n    // (loads first, remainder exported). Left at -9500 so export is never\n    // the limiting factor.\n    setpointNormal:       -150,    // anti-import bias / safe default\n    setpointExport:      -9500,    // active export ceiling - matches real 9500W inverter rating\n    setpointFreeCharge:   9000,    // Phase C forced grid charge (house + charger)\n    maxExportSetpoint:   -9500,    // hard ceiling = inverter continuous limit (confirmed 9500W)\n    minExportSetpoint:    -150,\n\n    // -- Daytime export bands (W) ---------------------------------\n    // v15: these are RELATIVE to the ACTIVE daytime floor, not absolute\n    // SoC. See the EXPORT case in 'ESS Controller' for why.\n    exportBandFull:      -9500,    // >= floor +10 points\n    exportBandStrong:    -7000,    // floor +5  .. +10\n    exportBandGentle:    -5000,    // floor +2  .. +5\n    exportBandMinimal:   -2000,    // floor +0  .. +2\n\n    // -- PV full-export override (v15, latching) -------------------\n    // While PV is above pvFullExportOnW the array is making surplus\n    // faster than the lower bands can shed it, so throttling just\n    // parks the excess in the battery and SoC climbs anyway. Force\n    // exportBandFull instead. Hysteresis stops setpoint chatter when\n    // PV hunts around the threshold on a partly-cloudy day.\n    pvFullExportOnW:      8000,    // engage above this\n    pvFullExportOffW:     7000,    // release below this\n\n    // -- Big-solar-day export (v16.4) -------------------------------\n    // The array can charge the battery at up to ~14.5kW but the inverter\n    // only passes ~8kW AC, so on a big solar day the battery fills fast\n    // unless it is emptied by exporting hard. The FIRST time PV exceeds\n    // pvFullExportOnW (8000W) on a day the forecast says is big\n    // (isBigForecastDay: bigDayForecastKwh), the day is LATCHED and we\n    // export at pvSurplusExportW in EXPORT/NORMAL/PROTECT, whatever the\n    // cloud does to PV in between. It stops when:\n    //   - SoC drops under pvSurplusExportMinSoc (re-arms at ResumeSoc), or\n    //   - it is too late in the day (sunset - pvBigDayEndBeforeSunsetH,\n    //     or pvBigDayEndFallbackHour when sunset is unknown), or\n    //   - PV stays under pvBigDayLowPvW for pvBigDayLowPvMin minutes\n    //     (a bust day; re-arms if PV climbs back over pvFullExportOnW).\n    pvSurplusExportW:         -9000,  // setpoint while the big-day latch is active\n    pvSurplusExportMinSoc:       40,  // drop out below this SoC\n    pvSurplusExportResumeSoc:    43,  // re-engage only at/above this (stops flapping at 40)\n    pvBigDayEndBeforeSunsetH:     3,  // stop this many hours before sunset\n    pvBigDayEndFallbackHour:   16.5,  // stop time if sunset unknown (16:30)\n    pvBigDayLowPvW:            3000,  // 'PV has collapsed' threshold\n    pvBigDayLowPvMin:            45,  // minutes under the threshold before giving up for now\n\n    // -- Control behaviour -----------------------------------------\n    exportMarginPct:        5,     // % SoC headroom above trajectory before export\n    setpointDeadbandW:    300,     // min change before DBus rewritten\n    setpointReassertSec:  300,     // force-rewrite DBus every 5 min regardless\n    socStaleTimeoutSec:   120,     // SoC older than this => PROTECT/FAULT\n    loopIntervalSec:       60,     // must match the 60s inject\n    batteryCapacityKwh: 28.68,     // 2x GSL051280A-B-GBP2\n    averageHouseLoadW:   1400,     // fallback if live load unavailable\n    overnightEndHour:       8,     // hold -150W until this hour (no solar)\n    noExportBeforeHour:     8,     // v16.1: HARD guard in 'ESS Controller' - setpoint never\n                                   //   more negative than setpointNormal (-150W) before this\n                                   //   hour, whatever mode is requested (FREECHARGE exempt,\n                                   //   big-day pre-dawn export exempt down to its 40% target).\n                                   //   Keeps the battery for breakfast; sunrise ~06:30, PV\n                                   //   is producing usefully by ~08:00.\n\n    // -- Weather impact (v16.6) ------------------------------------\n    // Rain / thunderstorm in the remaining daylight hours (hourly weather\n    // codes, 'Weather impact' node) raise the weekday 21:00 target and the\n    // daytime floor (Forecast Adjuster). Ignored if the forecast is invalid\n    // or older than 3 h. The PV forecast itself is NOT cut again: the POA\n    // radiation data already reflects cloud.\n    weatherImpact: {\n        rain:  { targetBump:  6, floorBump: 0 },   // light/moderate rain\n        heavy: { targetBump: 10, floorBump: 3 },   // heavy rain / violent showers\n        storm: { targetBump: 14, floorBump: 5 },   // thunderstorm (codes 95/96/99)\n        probMin: 50,                               // % chance to count light rain\n        heavyMm: 4,                                // mm/h counted as heavy\n        rainMm:  0.5                               // mm/h counted as rain\n    },\n\n    // -- Forecast / site -------------------------------------------\n    forecastMaxAdjustPct: 25,      // max % forecast can lower the 21:00 target\n    forecastMinTarget:    32,      // forecast can never push target below this\n    latitude:  -37.2540109,        // 31A Leathem Crescent, Pokeno 2402, NZ\n    longitude: 175.0050308,\n    systemEfficiency:   0.82,\n    solarArrays: [\n        { name: 'ENE',    azimuth:  57, tilt: 23, capacityKw: 6.09 },\n        { name: 'NNW/NW', azimuth: 326, tilt: 23, capacityKw: 7.83 },\n        { name: 'WSW',    azimuth: 237, tilt: 23, capacityKw: 5.52 },\n    ],\n\n    // -- Dynamic daytime floor (v16: hourly surplus headroom) ------\n    // The MultiPlus can pass at most exportCeilingKw of AC (export + house\n    // + pool). Any PV above that, hour by hour, can ONLY go into the\n    // battery. The floor is set so the battery has exactly enough room\n    // left for the surplus still to come today:\n    //     track = 100 - remainingSurplus% - surplusTargetMarginPct\n    //     floor = track - surplusFloorBelowTrackPct\n    // SoC is steered onto 'track' (early export makes the room); the floor\n    // sits well below it so the controller keeps full export while SoC\n    // rides the track, and only protects if SoC falls well under it.\n    // Both rise through the day as the surplus is used up, so SoC reaches\n    // ~100% as the surplus ends instead of at 11am.\n    // Loads (pool heat pump etc.) don't change the surplus - they only\n    // change the export/load split of the same 9.5kW.\n    exportCeilingKw:        8.0,   // v16: REAL AC egress limit (export + all AC loads). Datasheet\n                                   //   48/10000: 8000W @25C, 7000W @40C, 6000W @65C continuous.\n                                   //   Observed 25-Sep-2026 11:54: 14.6kW PV -> 8.2kW AC out\n                                   //   (5.4 load + 2.8 export) + 5.8kW into battery.\n    surplusTargetMarginPct:  3,    // end-of-surplus headroom (CCL taper near full)\n    surplusFloorBelowTrackPct: 12, // floor = track - this (keeps full export band while on track)\n    dynamicFloorMinAbs:      35,   // weekday: never lower than this (free charge 21:00 refills)\n    dynamicFloorMinAbsWeekend: 50, // weekend: never lower than this (no free charge)\n    weekendDynamicFloor:   true,\n\n    // -- Big forecast day bottom (v16.1) --------------------------------\n    // From bigDayFloorFromHour on a big forecast day, the floor's bottom\n    // clamp drops so the morning export empties the battery further. Once\n    // PV exceeds the inverter ceiling the MPPTs charge the battery\n    // directly on the DC bus (e.g. 14kW PV -> ~8kW AC + ~6kW battery), so\n    // more empty battery = more PV harvested instead of clipped.\n    // The floor still = max(bottom, track - 12) and rises through the day\n    // as the surplus is used; from 09:00 the confidence ratio scales the\n    // forecast down on a bust day, which lifts the floor automatically.\n    bigDayForecastKwh:        60,  // remaining-day forecast at/above this (latched for the day)\n    bigDayFloorFromHour:       8,  // lower bottom applies from this hour\n    bigDayTiers: [                 // v16.2: bottom SoC by the day's peak forecast (kWh, highest first)\n        { kwh: 100, floor: 25 },   //   forecast >= 100kWh -> may drain to 25%\n        { kwh:  80, floor: 30 },   //   forecast >=  80kWh -> may drain to 30%\n    ],                             //   below the lowest tier: normal dynamicFloorMinAbs applies\n    bigDayFloorMinAbs:        25,  // (v16.1, superseded by bigDayTiers - unused)\n    bigDayFloorMinAbsWeekend: 40,  // weekend bottom on big days (no free charge that night)\n\n    // -- Big-day pre-dawn export (v16.1) --------------------------------\n    // Once PV is up, the battery can only drain at (ceiling - PV), so by\n    // 08:00 there's little time left to make room. On a big forecast day,\n    // export from the battery BEFORE dawn instead, timed to land at\n    // bigDayPreDawnTargetSoc by bigDayPreDawnTargetHour (drain = ceiling\n    // minus forecast PV, walked back hour by hour, plus a margin). Holds\n    // the target until 08:00 (breakfast reserve), then the big-day floor\n    // takes over. Weekday this is last night's free charge sold at 8c.\n    bigDayPreDawnExport:      true,\n    bigDayPreDawnTargetSoc:     40,   // % to reach by the target hour (breakfast reserve)\n    bigDayPreDawnTargetHour:   7.5,   // 07:30\n    bigDayPreDawnEarliestHour: 3.0,   // never start before 03:00\n    bigDayPreDawnMarginH:     0.25,   // start this much earlier than the calc says   // v16: apply the surplus floor on Sat/Sun too (before cutoff)\n\n    // -- Early export on surplus days (v16) ---------------------------\n    // The battery can only be drained as fast as (exportCeilingKw - PV),\n    // so once PV reaches the ceiling (~9am in summer) no more room can be\n    // made. On surplus days the overnight hold therefore ends early enough\n    // to bring SoC down to the floor BEFORE the surplus starts - walked\n    // back hour by hour from the forecast profile. Weekday pre-dawn export\n    // is energy bought free in last night's 21:00-24:00 window, sold at 8c.\n    overnightEndMinHour:        8.0,   // v16.1: early export may not start before 08:00 (breakfast reserve)\n    earlyExportMarginH:         0.5,   // start this much earlier than the calc says\n};\nflow.set('config', CONFIG);\n\n// ---------------- Phase determination ---------------------------\n// Weekdays : Phase B (managed day)  00:00-21:00\n//            Phase C (free charge)  21:00-24:00\n// Weekends : Phase A (self-consume + surplus export, never grid-charge)\n// The 00:00-08:00 overnight hold is applied inside the Trajectory Engine.\nconst now      = new Date();\nconst totalMin = now.getHours() * 60 + now.getMinutes();\nconst dow      = now.getDay();\nconst freeStart = CONFIG.freeWindowStartHour * 60 + CONFIG.freeWindowStartMinute;\n\nconst isActiveDay = CONFIG.activeDays.includes(dow);\nconst isWeekend   = !isActiveDay;\n\nconst phase = isActiveDay ? (totalMin >= freeStart ? 'C' : 'B') : 'A';\n\nflow.set('phase', phase);\nflow.set('isWeekend', isWeekend);\nflow.set('lastTick', now.getTime());\n\nconst colour = phase === 'C' ? 'green' : phase === 'B' ? 'blue' : 'grey';\nnode.status({ fill: colour, shape: 'dot',\n    text: 'Phase ' + phase + (isWeekend ? ' (weekend)' : '') + ' | ' + now.toLocaleTimeString() });\n\nmsg.phase     = phase;\nmsg.isWeekend = isWeekend;\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -258,17 +259,17 @@
         "y": 100,
         "wires": [
             [
-                "7033a4edcfc3c890"
+                "691360b014a3deaf"
             ]
         ]
     },
     {
-        "id": "7033a4edcfc3c890",
+        "id": "691360b014a3deaf",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Forecast Adjuster",
-        "func": "// Lowers tonight's 21:00 pre-discharge target when good solar is\n// forecast for the remaining day (more room to export this evening).\nconst config        = flow.get('config') || {};\nconst forecastKwh   = flow.get('forecastKwh');\nconst forecastValid = flow.get('forecastValid');\nconst isWeekend     = flow.get('isWeekend') || false;\n\nconst baseTarget = config.targetSocAt2100    || 43;\nconst battCapKwh = config.batteryCapacityKwh || 28.68;\nconst minTarget  = config.forecastMinTarget  || 32;   // v10 fix: was wrongly minSocNormal\nconst maxAdjust  = config.forecastMaxAdjustPct || 25;\n\nlet dynamicTarget = baseTarget;\nlet reason = 'base (no forecast)';\n\nif (!isWeekend && forecastValid && forecastKwh !== null && forecastKwh !== undefined) {\n    const solarSocPct = (forecastKwh / battCapKwh) * 100;\n    const adjustment  = Math.min(solarSocPct * 0.6, maxAdjust);\n    dynamicTarget     = Math.max(minTarget, Math.round(baseTarget - adjustment));\n    reason = 'forecast ' + forecastKwh.toFixed(1) + 'kWh, adj -' + adjustment.toFixed(1) + '%';\n}\nif (isWeekend) reason = 'weekend - base target';\n\nflow.set('dynamicTarget', dynamicTarget);\n\n// -- Dynamic daytime floor (v16: hourly surplus headroom) --------\n// v15 used  trapped = remainingForecast - 9.5kW * min(hoursLeft, 6).\n// By ~10am on a long DST day the remaining forecast drops under 57kWh,\n// \"trapped\" went to 0, the floor snapped back to 80%, SoC was below it,\n// the controller went NORMAL (-150W) and ALL PV went into the battery -\n// full by 11am. v16 instead sums, hour by hour, only the PV the inverter\n// physically can't pass (PV - exportCeilingKw), for the rest of today,\n// and keeps exactly that much room in the battery.\nconst ceilingKw = config.exportCeilingKw || 9.5;\nconst hourlyPv  = flow.get('forecastHourly') || [];\nconst confObj   = flow.get('forecastConfidence');\nconst nowD      = new Date();\nconst nowHf     = nowD.getHours() + nowD.getMinutes() / 60;\n// From 09:00 scale by how the morning actually performed (never scale up)\nconst confRatio = (nowHf >= 9 && confObj && typeof confObj.ratio === 'number')\n    ? Math.min(1, confObj.ratio) : 1;\n\nlet surplusKwh = 0;\nhourlyPv.forEach(p => {\n    if (p.h + 1 <= nowHf) return;                         // hour already over\n    const frac = p.h < nowHf ? (p.h + 1 - nowHf) : 1;      // part of current hour left\n    surplusKwh += Math.max(0, p.kw * confRatio - ceilingKw) * frac;\n});\nsurplusKwh = Math.round(surplusKwh * 10) / 10;\nconst surplusPct = (surplusKwh / battCapKwh) * 100;\n\nconst useDyn    = forecastValid && hourlyPv.length > 0 && (!isWeekend || config.weekendDynamicFloor);\nconst baseFloor = isWeekend ? (config.daytimeFloorWeekend || 85) : (config.daytimeFloorWeekday || 80);\n// v16.1: big-forecast-day bottom. forecastKwh is the REMAINING day, so it\n// shrinks as the day goes on - latch per date from the first reading at or\n// above the threshold so the bottom doesn't snap back mid-morning.\nconst todayStr = nowD.toDateString();\nif (forecastValid && (forecastKwh || 0) >= (config.bigDayForecastKwh || 60)) {\n    flow.set('bigForecastDate', todayStr);\n}\nconst isBigForecastDay = flow.get('bigForecastDate') === todayStr;\nconst normalMinAbs = isWeekend ? (config.dynamicFloorMinAbsWeekend || 50) : (config.dynamicFloorMinAbs || 35);\n// v16.2: TIERED big-day bottom by forecast size (CONFIG.bigDayTiers).\n// forecastKwh is the REMAINING day and shrinks, so latch the day's highest\n// reading per date. >=100kWh -> 25%, >=80kWh -> 30%, below that the normal\n// dynamic floor minimum applies (weekends: 50%). Tiers apply on weekends too. The confidence ratio still lifts the floor on a bust\n// day via headroomFloor, so no manual babysitting.\nconst tiers = (config.bigDayTiers || [{ kwh: 100, floor: 25 }, { kwh: 80, floor: 30 }])\n    .slice().sort((a, b) => b.kwh - a.kwh);\nif (flow.get('dayMaxForecastDate') !== todayStr) {\n    flow.set('dayMaxForecastDate', todayStr);\n    flow.set('dayMaxForecastKwh', 0);\n}\nif (forecastValid && (forecastKwh || 0) > (flow.get('dayMaxForecastKwh') || 0)) {\n    flow.set('dayMaxForecastKwh', forecastKwh);\n}\nconst dayMaxKwh = flow.get('dayMaxForecastKwh') || 0;\nconst tier      = tiers.find(t => dayMaxKwh >= t.kwh) || null;\nconst tierFloor = tier ? tier.floor : null;   // same tiers Mon-Sun\nconst tierActive = tier !== null && nowHf >= (config.bigDayFloorFromHour != null ? config.bigDayFloorFromHour : 8);\nconst minAbs    = Math.max(config.minSocNormal || 20,\n                           tierActive ? Math.min(normalMinAbs, tierFloor) : normalMinAbs);\nflow.set('bigDayTierFloor', tierFloor);\nflow.set('dayMaxForecastKwh', dayMaxKwh);\nflow.set('isBigForecastDay', isBigForecastDay);\n\n// -- v16.1: big-day pre-dawn export start time ------------------------\n// Walk back from the target hour, adding (ceiling - PV) per hour (how\n// fast the battery can drain), until it covers SoC - target.\nlet preDawnStartH = null;\n{\n    const tgtSoc = config.bigDayPreDawnTargetSoc  != null ? config.bigDayPreDawnTargetSoc  : 40;\n    const tgtH   = config.bigDayPreDawnTargetHour != null ? config.bigDayPreDawnTargetHour : 7.5;\n    const socP   = flow.get('soc');\n    if (config.bigDayPreDawnExport !== false && isBigForecastDay && socP != null && nowHf < tgtH) {\n        if (socP > tgtSoc) {\n            let needKwh = (socP - tgtSoc) / 100 * battCapKwh;\n            let h = tgtH;\n            while (needKwh > 0 && h > 0) {\n                const hr = Math.floor(h - 1e-9);\n                const p  = hourlyPv.find(x => x.h === hr);\n                const drainKw = Math.max(0.5, ceilingKw - (p ? p.kw : 0));\n                const span = h - hr;                       // part of this hour available\n                const can  = drainKw * span;\n                if (can >= needKwh) { h -= needKwh / drainKw; needKwh = 0; }\n                else                { needKwh -= can; h = hr; }\n            }\n            preDawnStartH = Math.max(config.bigDayPreDawnEarliestHour != null ? config.bigDayPreDawnEarliestHour : 3,\n                                     Math.round((h - (config.bigDayPreDawnMarginH || 0.25)) * 100) / 100);\n        }\n    }\n}\nflow.set('preDawnExportStartH', preDawnStartH);\nflow.set('bigDayFloorActive', tierActive);\nconst trackSoc  = Math.round(100 - surplusPct - (config.surplusTargetMarginPct || 3));\nconst headroomFloor = trackSoc - (config.surplusFloorBelowTrackPct || 12);\nconst dynFloor  = useDyn ? Math.min(baseFloor, Math.max(minAbs, headroomFloor)) : baseFloor;\nflow.set('surplusTrackSoc', useDyn ? Math.max(minAbs, trackSoc) : null);\n\n// -- When must export start to reach the floor before the surplus? --\n// Walk back from the first surplus hour, adding (ceiling - PV) per hour\n// (= how fast the battery can drain), until it covers SoC - floor.\nlet exportStartH = null;\nconst socNow = flow.get('soc');\nconst firstSurplus = hourlyPv.find(p => p.kw * confRatio > ceilingKw);\nconst drainTo = useDyn ? Math.max(minAbs, trackSoc) : dynFloor;\nif (useDyn && firstSurplus && socNow != null && socNow > drainTo) {\n    let needKwh = (socNow - drainTo) / 100 * battCapKwh;\n    let h = firstSurplus.h;\n    while (needKwh > 0 && h > 0) {\n        h -= 1;\n        const p = hourlyPv.find(x => x.h === h);\n        const drainKw = Math.max(0.5, ceilingKw - (p ? p.kw * confRatio : 0));\n        needKwh -= drainKw;\n        if (needKwh < 0) h += (-needKwh) / drainKw;   // partial hour\n    }\n    exportStartH = Math.round((h - (config.earlyExportMarginH || 0.5)) * 100) / 100;\n}\nflow.set('earlyExportStartH', exportStartH);\n\nflow.set('dynamicDaytimeFloor', dynFloor);\nflow.set('forecastSurplusKwh', surplusKwh);\nflow.set('isSurplusDay', useDyn && surplusKwh > 0.5);\n\nnode.status({ fill: 'blue', shape: 'dot',\n    text: 'Target: ' + dynamicTarget + '% (' + reason + ') | Floor: ' + dynFloor + '%'\n        + (dynFloor < baseFloor ? ' (-' + (baseFloor - dynFloor) + ')' : '')\n        + (tierActive ? ' | TIER ' + tier.kwh + 'kWh>=' + minAbs : '')\n        + ' | surplus ' + surplusKwh + 'kWh' + (confRatio < 1 ? ' x' + confRatio.toFixed(2) : '') });\nreturn msg;\n",
+        "func": "// Lowers tonight's 21:00 pre-discharge target when good solar is\n// forecast for the remaining day (more room to export this evening).\n// v16.6: rain / thunderstorm raise the target and the daytime floor\n// (flow 'weatherImpact', written by the 'Weather impact' node).\nconst config        = flow.get('config') || {};\nconst forecastKwh   = flow.get('forecastKwh');\nconst forecastValid = flow.get('forecastValid');\nconst isWeekend     = flow.get('isWeekend') || false;\n\nconst baseTarget = config.targetSocAt2100    || 43;\nconst battCapKwh = config.batteryCapacityKwh || 28.68;\nconst minTarget  = config.forecastMinTarget  || 32;   // v10 fix: was wrongly minSocNormal\nconst maxAdjust  = config.forecastMaxAdjustPct || 25;\n\n// v16.6: weather impact (ignored if forecast invalid or older than 3 h)\nconst wi    = flow.get('weatherImpact');\nconst wiOk  = !!(wi && forecastValid && (Date.now() - wi.ts) < 3 * 3600 * 1000);\nconst wxTargetBump = wiOk ? wi.targetBump : 0;\nconst wxFloorBump  = wiOk ? wi.floorBump  : 0;\n\nlet dynamicTarget = baseTarget;\nlet reason = 'base (no forecast)';\n\nif (!isWeekend && forecastValid && forecastKwh !== null && forecastKwh !== undefined) {\n    const solarSocPct = (forecastKwh / battCapKwh) * 100;\n    const adjustment  = Math.min(solarSocPct * 0.6, maxAdjust);\n    dynamicTarget     = Math.max(minTarget, Math.round(baseTarget - adjustment));\n    reason = 'forecast ' + forecastKwh.toFixed(1) + 'kWh, adj -' + adjustment.toFixed(1) + '%';\n}\nif (isWeekend) reason = 'weekend - base target';\n\n// v16.6: weather bump on the 21:00 target (weekday only - weekends use base)\nif (!isWeekend && wxTargetBump > 0) {\n    dynamicTarget = Math.min(100, dynamicTarget + wxTargetBump);\n    reason += ', ' + wi.label + ' +' + wxTargetBump;\n}\n\nflow.set('dynamicTarget', dynamicTarget);\n\n// -- Dynamic daytime floor (v16: hourly surplus headroom) --------\n// v15 used  trapped = remainingForecast - 9.5kW * min(hoursLeft, 6).\n// By ~10am on a long DST day the remaining forecast drops under 57kWh,\n// \"trapped\" went to 0, the floor snapped back to 80%, SoC was below it,\n// the controller went NORMAL (-150W) and ALL PV went into the battery -\n// full by 11am. v16 instead sums, hour by hour, only the PV the inverter\n// physically can't pass (PV - exportCeilingKw), for the rest of today,\n// and keeps exactly that much room in the battery.\nconst ceilingKw = config.exportCeilingKw || 9.5;\nconst hourlyPv  = flow.get('forecastHourly') || [];\nconst confObj   = flow.get('forecastConfidence');\nconst nowD      = new Date();\nconst nowHf     = nowD.getHours() + nowD.getMinutes() / 60;\n// From 09:00 scale by how the morning actually performed (never scale up)\nconst confRatio = (nowHf >= 9 && confObj && typeof confObj.ratio === 'number')\n    ? Math.min(1, confObj.ratio) : 1;\n\nlet surplusKwh = 0;\nhourlyPv.forEach(p => {\n    if (p.h + 1 <= nowHf) return;                         // hour already over\n    const frac = p.h < nowHf ? (p.h + 1 - nowHf) : 1;      // part of current hour left\n    surplusKwh += Math.max(0, p.kw * confRatio - ceilingKw) * frac;\n});\nsurplusKwh = Math.round(surplusKwh * 10) / 10;\nconst surplusPct = (surplusKwh / battCapKwh) * 100;\n\nconst useDyn    = forecastValid && hourlyPv.length > 0 && (!isWeekend || config.weekendDynamicFloor);\nconst baseFloorRaw = isWeekend ? (config.daytimeFloorWeekend || 85) : (config.daytimeFloorWeekday || 80);\n// v16.6: wet / stormy day holds the battery higher (capped at 95)\nconst baseFloor = Math.min(95, baseFloorRaw + wxFloorBump);\n// v16.1: big-forecast-day bottom. forecastKwh is the REMAINING day, so it\n// shrinks as the day goes on - latch per date from the first reading at or\n// above the threshold so the bottom doesn't snap back mid-morning.\nconst todayStr = nowD.toDateString();\nif (forecastValid && (forecastKwh || 0) >= (config.bigDayForecastKwh || 60)) {\n    flow.set('bigForecastDate', todayStr);\n}\nconst isBigForecastDay = flow.get('bigForecastDate') === todayStr;\nconst normalMinAbs = isWeekend ? (config.dynamicFloorMinAbsWeekend || 50) : (config.dynamicFloorMinAbs || 35);\n// v16.2: TIERED big-day bottom by forecast size (CONFIG.bigDayTiers).\n// forecastKwh is the REMAINING day and shrinks, so latch the day's highest\n// reading per date. >=100kWh -> 25%, >=80kWh -> 30%, below that the normal\n// dynamic floor minimum applies (weekends: 50%). Tiers apply on weekends too. The confidence ratio still lifts the floor on a bust\n// day via headroomFloor, so no manual babysitting.\nconst tiers = (config.bigDayTiers || [{ kwh: 100, floor: 25 }, { kwh: 80, floor: 30 }])\n    .slice().sort((a, b) => b.kwh - a.kwh);\nif (flow.get('dayMaxForecastDate') !== todayStr) {\n    flow.set('dayMaxForecastDate', todayStr);\n    flow.set('dayMaxForecastKwh', 0);\n}\nif (forecastValid && (forecastKwh || 0) > (flow.get('dayMaxForecastKwh') || 0)) {\n    flow.set('dayMaxForecastKwh', forecastKwh);\n}\nconst dayMaxKwh = flow.get('dayMaxForecastKwh') || 0;\nconst tier      = tiers.find(t => dayMaxKwh >= t.kwh) || null;\nconst tierFloor = tier ? tier.floor : null;   // same tiers Mon-Sun\nconst tierActive = tier !== null && nowHf >= (config.bigDayFloorFromHour != null ? config.bigDayFloorFromHour : 8);\nconst minAbs    = Math.max(config.minSocNormal || 20,\n                           tierActive ? Math.min(normalMinAbs, tierFloor) : normalMinAbs);\nflow.set('bigDayTierFloor', tierFloor);\nflow.set('dayMaxForecastKwh', dayMaxKwh);\nflow.set('isBigForecastDay', isBigForecastDay);\n\n// -- v16.1: big-day pre-dawn export start time ------------------------\n// Walk back from the target hour, adding (ceiling - PV) per hour (how\n// fast the battery can drain), until it covers SoC - target.\nlet preDawnStartH = null;\n{\n    const tgtSoc = config.bigDayPreDawnTargetSoc  != null ? config.bigDayPreDawnTargetSoc  : 40;\n    const tgtH   = config.bigDayPreDawnTargetHour != null ? config.bigDayPreDawnTargetHour : 7.5;\n    const socP   = flow.get('soc');\n    if (config.bigDayPreDawnExport !== false && isBigForecastDay && socP != null && nowHf < tgtH) {\n        if (socP > tgtSoc) {\n            let needKwh = (socP - tgtSoc) / 100 * battCapKwh;\n            let h = tgtH;\n            while (needKwh > 0 && h > 0) {\n                const hr = Math.floor(h - 1e-9);\n                const p  = hourlyPv.find(x => x.h === hr);\n                const drainKw = Math.max(0.5, ceilingKw - (p ? p.kw : 0));\n                const span = h - hr;                       // part of this hour available\n                const can  = drainKw * span;\n                if (can >= needKwh) { h -= needKwh / drainKw; needKwh = 0; }\n                else                { needKwh -= can; h = hr; }\n            }\n            preDawnStartH = Math.max(config.bigDayPreDawnEarliestHour != null ? config.bigDayPreDawnEarliestHour : 3,\n                                     Math.round((h - (config.bigDayPreDawnMarginH || 0.25)) * 100) / 100);\n        }\n    }\n}\nflow.set('preDawnExportStartH', preDawnStartH);\nflow.set('bigDayFloorActive', tierActive);\nconst trackSoc  = Math.round(100 - surplusPct - (config.surplusTargetMarginPct || 3));\nconst headroomFloor = trackSoc - (config.surplusFloorBelowTrackPct || 12);\nconst dynFloor  = useDyn ? Math.min(baseFloor, Math.max(minAbs, headroomFloor)) : baseFloor;\nflow.set('surplusTrackSoc', useDyn ? Math.max(minAbs, trackSoc) : null);\n\n// -- When must export start to reach the floor before the surplus? --\n// Walk back from the first surplus hour, adding (ceiling - PV) per hour\n// (= how fast the battery can drain), until it covers SoC - floor.\nlet exportStartH = null;\nconst socNow = flow.get('soc');\nconst firstSurplus = hourlyPv.find(p => p.kw * confRatio > ceilingKw);\nconst drainTo = useDyn ? Math.max(minAbs, trackSoc) : dynFloor;\nif (useDyn && firstSurplus && socNow != null && socNow > drainTo) {\n    let needKwh = (socNow - drainTo) / 100 * battCapKwh;\n    let h = firstSurplus.h;\n    while (needKwh > 0 && h > 0) {\n        h -= 1;\n        const p = hourlyPv.find(x => x.h === h);\n        const drainKw = Math.max(0.5, ceilingKw - (p ? p.kw * confRatio : 0));\n        needKwh -= drainKw;\n        if (needKwh < 0) h += (-needKwh) / drainKw;   // partial hour\n    }\n    exportStartH = Math.round((h - (config.earlyExportMarginH || 0.5)) * 100) / 100;\n}\nflow.set('earlyExportStartH', exportStartH);\n\nflow.set('dynamicDaytimeFloor', dynFloor);\nflow.set('forecastSurplusKwh', surplusKwh);\nflow.set('isSurplusDay', useDyn && surplusKwh > 0.5);\n\nnode.status({ fill: 'blue', shape: 'dot',\n    text: 'Target: ' + dynamicTarget + '% (' + reason + ') | Floor: ' + dynFloor + '%'\n        + (dynFloor < baseFloor ? ' (-' + (baseFloor - dynFloor) + ')' : '')\n        + (wxFloorBump ? ' [wx +' + wxFloorBump + ']' : '')\n        + (tierActive ? ' | TIER ' + tier.kwh + 'kWh>=' + minAbs : '')\n        + ' | surplus ' + surplusKwh + 'kWh' + (confRatio < 1 ? ' x' + confRatio.toFixed(2) : '') });\nreturn msg;\n",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -279,15 +280,15 @@
         "y": 100,
         "wires": [
             [
-                "74e219637c123ae3"
+                "cec014f2478a905c"
             ]
         ]
     },
     {
-        "id": "74e219637c123ae3",
+        "id": "cec014f2478a905c",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Trajectory Engine",
         "func": "// Decides the raw intent for this tick:\n//   FREECHARGE  - Phase C grid charge (Mon-Fri 21:00-24:00)\n//   EXPORT      - daytime export (banded relative to the floor in ESS Controller)\n//   DYNAMIC     - evening closed-loop shed toward the 21:00 target\n//   NORMAL      - hold -150W (anti-import bias)\n//   PROTECT     - SoC missing/stale or at/below required trajectory\nconst config    = flow.get('config') || {};\nconst phase     = flow.get('phase') || 'A';\nconst isWeekend = flow.get('isWeekend') || false;\nconst soc       = flow.get('soc');\nconst now       = new Date();\n\nconst nowH       = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;\nconst freeStartH = config.freeWindowStartHour + config.freeWindowStartMinute / 60;\nconst activeDays = config.activeDays || [1, 2, 3, 4, 5];\n\n// v10.4 fix: compute + store hoursToFreeWindow FIRST, unconditionally,\n// before any early-return branch below. Phase C / PROTECT / the\n// overnight hold all used to return before this line ever ran, which\n// left the \"Hours to Free Window\" sensor stuck on Unknown whenever the\n// controller was in any of those states (e.g. every night 00:00-08:00).\n// Also now correctly counts down across weekend boundaries instead of\n// just clamping to 0 once today's 21:00 has passed.\nlet hoursLeft;\nif (!isWeekend && nowH < freeStartH) {\n    hoursLeft = freeStartH - nowH;\n} else {\n    let daysAhead = 1;\n    while (daysAhead <= 7 && !activeDays.includes((now.getDay() + daysAhead) % 7)) {\n        daysAhead++;\n    }\n    hoursLeft = (daysAhead * 24) - nowH + freeStartH;\n}\nflow.set('hoursToFreeWindow', hoursLeft);\n\n// v10.6 fix: weekendExportCutoff/weekendCutoffSource used to only be\n// computed inside the phase==='A' (weekend) branch below - meaning on\n// any weekday, those flow vars were simply never set at all, so the\n// \"Weekend Export Cutoff\" / \"Cutoff Source\" sensors sat on Unknown\n// the entire working week. Compute it every tick instead, unconditio-\n// nally, so it's a live preview of tonight's-would-be cutoff even on\n// weekdays - the value is only ever actually ACTED on in Phase A,\n// this just makes it visible the rest of the week too.\n{\n    const exportMargin = config.weekendExportMarginPct || 2;\n    let exportCutoff = config.weekendExportCutoffFixed || 15.0;\n    let cutoffSource = 'fixed';\n    if (config.weekendUseSunsetCutoff) {\n        const sunsetH = flow.get('sunsetH');\n        if (sunsetH !== null && sunsetH !== undefined && sunsetH > 12 && sunsetH < 23) {\n            const oW = config.weekendCutoffOffsetWinter || 3.0;\n            const oS = config.weekendCutoffOffsetSummer || 1.0;\n            const dayOfYr = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);\n            const seasonPhase = Math.cos((dayOfYr - 172) / 365 * 2 * Math.PI);\n            const offset = (oW + oS) / 2 + (oW - oS) / 2 * seasonPhase;\n            exportCutoff = sunsetH - offset;\n            cutoffSource = 'sunset-' + offset.toFixed(1) + 'h';\n        }\n    }\n    flow.set('weekendExportCutoff', exportCutoff);\n    flow.set('weekendCutoffSource', cutoffSource);\n}\n\n// -- Phase C: free grid charge (weekdays only by construction) ----\nif (phase === 'C') {\n    msg.rawIntent = 'FREECHARGE';\n    flow.set('requiredSoc', null);\n    node.status({ fill: 'green', shape: 'dot', text: 'FREECHARGE - Mon-Fri 21:00-24:00' });\n    return msg;\n}\n\n// -- SoC missing or stale => protect ------------------------------\nconst staleMs  = (config.socStaleTimeoutSec || 120) * 1000;\nconst socAgeMs = flow.get('socLastUpdated') ? (Date.now() - flow.get('socLastUpdated')) : Infinity;\nif (soc === null || soc === undefined || socAgeMs > staleMs) {\n    msg.rawIntent = 'PROTECT';\n    const ageStr = isFinite(socAgeMs) ? Math.round(socAgeMs / 1000) + 's ago' : 'never';\n    node.status({ fill: 'red', shape: 'dot', text: 'PROTECT (SoC ' + ageStr + ')' });\n    return msg;\n}\n\n// -- Overnight hold 00:00 -> overnightEndHour (no solar) ----------\n// v16: on surplus days end the hold early enough to reach the floor\n// before PV exceeds the inverter ceiling (Forecast Adjuster calc),\n// clamped to [overnightEndMinHour, overnightEndHour]\nlet overnightEndH = config.overnightEndHour || 8;\nconst earlyStartH = flow.get('earlyExportStartH');\nif (flow.get('isSurplusDay') && earlyStartH != null) {\n    overnightEndH = Math.min(overnightEndH, Math.max(config.overnightEndMinHour != null ? config.overnightEndMinHour : 8.0, earlyStartH));\n}\nflow.set('overnightEndH', overnightEndH);\n\n// -- v16.1: big-day pre-dawn export ------------------------------------\n// Latches per date once started, so a recomputed (later) start time can't\n// switch it off part-way. Exports toward the 40% target, banded relative\n// to it in 'ESS Controller', then holds -150W until 08:00.\n{\n    const todayStr = now.toDateString();\n    const tgtSoc   = config.bigDayPreDawnTargetSoc != null ? config.bigDayPreDawnTargetSoc : 40;\n    const startH   = flow.get('preDawnExportStartH');\n    const bigDay   = flow.get('isBigForecastDay') === true && config.bigDayPreDawnExport !== false;\n    if (bigDay && startH != null && nowH >= startH && nowH < overnightEndH) {\n        flow.set('preDawnLatchDate', todayStr);\n    }\n    const latched = bigDay && flow.get('preDawnLatchDate') === todayStr && nowH < overnightEndH;\n    flow.set('preDawnExportActive', latched && soc > tgtSoc);\n    if (latched) {\n        flow.set('daytimeFloor', tgtSoc);\n        flow.set('requiredSoc', tgtSoc);\n        if (soc > tgtSoc) {\n            msg.rawIntent = 'EXPORT';\n            flow.set('lastRawIntent', 'EXPORT');\n            node.status({ fill: 'blue', shape: 'dot',\n                text: 'PRE-DAWN EXPORT | SoC:' + soc.toFixed(1) + '% -> ' + tgtSoc + '% by '\n                    + Math.floor(config.bigDayPreDawnTargetHour || 7.5) + ':'\n                    + String(Math.round(((config.bigDayPreDawnTargetHour || 7.5) % 1) * 60)).padStart(2, '0') });\n        } else {\n            msg.rawIntent = 'NORMAL';\n            flow.set('lastRawIntent', 'NORMAL');\n            node.status({ fill: 'grey', shape: 'dot',\n                text: 'PRE-DAWN HOLD | SoC:' + soc.toFixed(1) + '% at target ' + tgtSoc + '% until 08:00' });\n        }\n        return msg;\n    }\n}\n\nif (nowH < overnightEndH) {\n    msg.rawIntent = 'NORMAL';\n    flow.set('requiredSoc', null);\n    flow.set('lastRawIntent', 'NORMAL');\n    node.status({ fill: 'grey', shape: 'ring',\n        text: 'OVERNIGHT HOLD | ' + now.toLocaleTimeString()\n            + ' (resumes ' + Math.floor(overnightEndH) + ':' + String(Math.round((overnightEndH % 1) * 60)).padStart(2, '0') + ')' });\n    return msg;\n}\n\nconst effectiveTarget = flow.get('dynamicTarget') || config.targetSocAt2100;\nconst dynFloorStored  = flow.get('dynamicDaytimeFloor');\n// v16: dynamic floor applies on weekends too (Forecast Adjuster returns\n// the plain weekend floor when weekendDynamicFloor is off)\nconst daytimeFloor    = dynFloorStored != null\n    ? dynFloorStored\n    : (isWeekend ? config.daytimeFloorWeekend : (config.daytimeFloorWeekday || 80));\nflow.set('daytimeFloor', daytimeFloor);\n\n// ================= WEEKEND (Phase A) =============================\n// No free window - the battery must carry the house through the\n// night, so: export surplus in the morning, then charge to 100%\n// well before sunset, then trickle out only genuine surplus.\nif (phase === 'A') {\n    const exportMargin = config.weekendExportMarginPct || 2;\n    const exportCutoff = flow.get('weekendExportCutoff');\n    const cutoffSource = flow.get('weekendCutoffSource');\n\n    if (nowH < exportCutoff) {\n        if (soc < daytimeFloor) {\n            msg.rawIntent = 'NORMAL';\n            flow.set('requiredSoc', daytimeFloor);\n            flow.set('lastRawIntent', 'NORMAL');\n            node.status({ fill: 'yellow', shape: 'dot',\n                text: 'FLOOR | SoC:' + soc.toFixed(1) + '% floor:' + daytimeFloor + '% (weekend)' });\n            return msg;\n        }\n        if (soc > daytimeFloor + exportMargin) {\n            msg.rawIntent = 'EXPORT';\n            flow.set('requiredSoc', daytimeFloor);\n            flow.set('lastRawIntent', 'EXPORT');\n            node.status({ fill: 'blue', shape: 'dot',\n                text: 'WEEKEND EXPORT | SoC:' + soc.toFixed(1) + '% floor:' + daytimeFloor\n                    + '% cutoff:' + exportCutoff.toFixed(1) + 'h (' + cutoffSource + ')' });\n            return msg;\n        }\n        msg.rawIntent = 'NORMAL';\n        flow.set('requiredSoc', daytimeFloor);\n        node.status({ fill: 'grey', shape: 'dot',\n            text: 'NORMAL | SoC:' + soc.toFixed(1) + '% floor:' + daytimeFloor + '% (weekend)' });\n        return msg;\n    }\n\n    // After cutoff: charge to full, then export only surplus.\n    const fullSoC     = config.weekendFullSoC || 100;\n    const exportFloor = config.weekendExportFloorAfterFull || 98;\n\n    if (soc < fullSoC) {\n        const kwhNeeded = Math.round((fullSoC - soc) * (config.batteryCapacityKwh || 28.68) / 100 * 10) / 10;\n        msg.rawIntent = 'NORMAL';\n        flow.set('requiredSoc', fullSoC);\n        flow.set('lastRawIntent', 'NORMAL');\n        node.status({ fill: 'yellow', shape: 'ring',\n            text: 'WEEKEND CHARGE | SoC:' + soc.toFixed(1) + '% -> ' + fullSoC + '%'\n                + ' (' + kwhNeeded + 'kWh) cutoff:' + exportCutoff.toFixed(1) + 'h' });\n        return msg;\n    }\n    if (soc >= exportFloor) {\n        // v15: park daytimeFloor at the post-cutoff surplus floor so the\n        // floor-relative export bands in 'ESS Controller' taper against\n        // THIS threshold (98%) rather than the pre-cutoff 85% weekend\n        // floor - otherwise a 98-100% surplus trickle was being read as\n        // +13 points of headroom and dumped at full -9500W, which drops\n        // back under 98% within two ticks and flaps EXPORT <-> RECOVER.\n        flow.set('daytimeFloor', exportFloor);\n        msg.rawIntent = 'EXPORT';\n        flow.set('requiredSoc', exportFloor);\n        flow.set('lastRawIntent', 'EXPORT');\n        node.status({ fill: 'blue', shape: 'dot',\n            text: 'WEEKEND SURPLUS | SoC:' + soc.toFixed(1) + '% >= ' + exportFloor + '%' });\n        return msg;\n    }\n    msg.rawIntent = 'NORMAL';\n    flow.set('requiredSoc', exportFloor);\n    flow.set('lastRawIntent', 'NORMAL');\n    node.status({ fill: 'grey', shape: 'dot',\n        text: 'WEEKEND RECOVER | SoC:' + soc.toFixed(1) + '% -> ' + exportFloor + '%' });\n    return msg;\n}\n\n// ================= WEEKDAY (Phase B) =============================\n\n// -- Evening closed-loop shed: 19:00 -> free window ---------------\nif (nowH >= 19 && nowH < freeStartH) {\n    const isFirstBlock       = nowH < 20;\n    const checkpointSoC      = isFirstBlock ? (config.checkpointSocBy2000 || 65) : effectiveTarget;\n    const checkpointDeadline = isFirstBlock ? 20.0 : freeStartH;\n    const minutesLeft        = (checkpointDeadline - nowH) * 60;\n\n    if (soc <= checkpointSoC) {\n        msg.rawIntent = 'NORMAL';\n        flow.set('requiredSoc', checkpointSoC);\n        flow.set('dynamicSetpoint', config.minExportSetpoint || -150);\n        flow.set('lastRawIntent', 'NORMAL');\n        node.status({ fill: 'grey', shape: 'dot',\n            text: 'ON TRACK | SoC:' + soc.toFixed(1) + '% <= target:' + checkpointSoC + '%' });\n        return msg;\n    }\n\n    const battCapKwh = config.batteryCapacityKwh || 28.68;\n    const kwhToShed  = (soc - checkpointSoC) / 100 * battCapKwh;\n    const liveLoadW  = flow.get('acConsumptionW');\n    const houseLoadKw = (liveLoadW !== null && liveLoadW !== undefined\n                         ? liveLoadW : (config.averageHouseLoadW || 1400)) / 1000;\n\n    const hoursLeftCk = Math.max(minutesLeft / 60, 1 / 60);\n    let dynamicSetpointW = -((kwhToShed / hoursLeftCk) - houseLoadKw) * 1000;\n    dynamicSetpointW = Math.max(config.maxExportSetpoint || -9500,\n                       Math.min(config.minExportSetpoint || -150, dynamicSetpointW));\n    dynamicSetpointW = Math.round(dynamicSetpointW / 100) * 100;\n\n    flow.set('dynamicSetpoint', dynamicSetpointW);\n    flow.set('requiredSoc', checkpointSoC);\n    flow.set('lastRawIntent', 'DYNAMIC');\n    msg.rawIntent       = 'DYNAMIC';\n    msg.catchupSetpoint = dynamicSetpointW;\n    node.status({ fill: 'blue', shape: 'dot',\n        text: 'DYNAMIC | SoC:' + soc.toFixed(1) + '% tgt:' + checkpointSoC + '%'\n            + ' SP:' + dynamicSetpointW + 'W load:' + Math.round(houseLoadKw * 1000) + 'W '\n            + Math.round(minutesLeft) + 'min left' });\n    return msg;\n}\n\n// -- Daytime floor -------------------------------------------------\nif (soc < daytimeFloor) {\n    msg.rawIntent = 'NORMAL';\n    flow.set('requiredSoc', daytimeFloor);\n    flow.set('lastRawIntent', 'NORMAL');\n    node.status({ fill: 'yellow', shape: 'dot',\n        text: 'FLOOR | SoC:' + soc.toFixed(1) + '% floor:' + daytimeFloor + '%' });\n    return msg;\n}\n\n// -- Daytime closed-loop trajectory control ------------------------\n// Export whenever remaining export capacity can still land SoC on\n// the (forecast-adjusted) 21:00 target.\nconst battCapKwh   = config.batteryCapacityKwh || 28.68;\nconst maxExportKw  = Math.abs(config.setpointExport || -9500) / 1000;\nconst exportablePct = hoursLeft > 0 ? (maxExportKw * hoursLeft / battCapKwh) * 100 : 0;\nconst requiredSoc  = Math.max(effectiveTarget - exportablePct, daytimeFloor, config.minSocNormal || 20);\nflow.set('requiredSoc', requiredSoc);\n\nconst margin = config.exportMarginPct || 5;\nlet rawIntent;\nif      (soc > requiredSoc + margin) rawIntent = 'EXPORT';\nelse if (soc <= requiredSoc)         rawIntent = 'PROTECT';\nelse                                 rawIntent = flow.get('lastRawIntent') || 'NORMAL';\n\nflow.set('lastRawIntent', rawIntent);\nmsg.rawIntent     = rawIntent;\nmsg.requiredSoc   = requiredSoc;\nmsg.exportablePct = exportablePct;\nmsg.hoursLeft     = hoursLeft;\nnode.status({\n    fill:  rawIntent === 'EXPORT' ? 'blue' : rawIntent === 'PROTECT' ? 'yellow' : 'grey',\n    shape: 'dot',\n    text:  rawIntent + ' | SoC:' + soc.toFixed(1) + '% req:' + requiredSoc.toFixed(1)\n         + '% tgt:' + effectiveTarget + '%'\n});\nreturn msg;",
         "outputs": 1,
@@ -300,15 +301,15 @@
         "y": 80,
         "wires": [
             [
-                "7047cebad054c6b5"
+                "6c73dc47798735c5"
             ]
         ]
     },
     {
-        "id": "7047cebad054c6b5",
+        "id": "6c73dc47798735c5",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Safety Gate",
         "func": "// Final arbiter: any active fault forces FAULT mode (-150W, MinSoC 20).\nconst socStale       = flow.get('socStale')        || false;\nconst bmsAllowDis    = flow.get('bmsAllowDischarge');\nconst bmsBlock       = bmsAllowDis === false;\nconst manualOverride = flow.get('manualOverride')   || false;\nconst startupHold    = flow.get('startupHold')      || false;\n\nconst anyFault  = socStale || bmsBlock || manualOverride || startupHold;\nconst finalMode = anyFault ? 'FAULT' : (msg.rawIntent || 'NORMAL');\n\nconst state = {\n    version:      'v16.1',\n    mode:         finalMode,\n    rawIntent:    msg.rawIntent || 'NORMAL',\n    phase:        flow.get('phase') || 'A',\n    isWeekend:    flow.get('isWeekend') || false,\n    soc:          flow.get('soc'),\n    requiredSoc:  flow.get('requiredSoc'),\n    daytimeFloor: flow.get('daytimeFloor'),\n    hoursLeft:    flow.get('hoursToFreeWindow'),\n    faults: { socStale, bmsBlock, manualOverride, startupHold, anyFault },\n    timestamp:    new Date().toISOString()\n};\nflow.set('currentState', state);\nmsg.state = state;\nmsg.mode  = finalMode;\n\nconst colour = anyFault ? 'red' :\n    finalMode === 'FREECHARGE' ? 'green' :\n    (finalMode === 'EXPORT' || finalMode === 'DYNAMIC') ? 'blue' :\n    finalMode === 'PROTECT' ? 'yellow' : 'grey';\nconst active = [\n    socStale && 'SoC Stale', bmsBlock && 'BMS Block',\n    manualOverride && 'Override', startupHold && 'Startup',\n].filter(Boolean);\nnode.status({ fill: colour, shape: 'dot',\n    text: finalMode + (anyFault ? ' | FAULT: ' + active.join(', ') : '') });\nreturn msg;",
         "outputs": 1,
@@ -321,18 +322,18 @@
         "y": 60,
         "wires": [
             [
-                "89350924c7d4d3a1",
-                "a41cb20c7833af46",
-                "178746dfa190d73c",
-                "5ecce33238bffc87"
+                "d6bd8fa525baba58",
+                "afa3fbd88f962cce",
+                "8099b63cbd13d49c",
+                "d0134390258275ee"
             ]
         ]
     },
     {
-        "id": "89350924c7d4d3a1",
+        "id": "d6bd8fa525baba58",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "ESS Controller",
         "func": "// Translates mode -> grid setpoint + ESS MinSoC, with:\n//   - write deadband (avoid hammering DBus)\n//   - periodic re-assertion (recovers from GX reboot / external edits)\n//   - immediate write on FAULT\nconst config   = flow.get('config') || {};\nconst mode     = msg.mode;\nconst soc      = flow.get('soc');\nconst deadband = config.setpointDeadbandW || 300;\n\nlet targetSetpoint, targetMinSoc;\nlet pvOverride = false;\n\nswitch (mode) {\n\n    case 'DYNAMIC':\n        targetSetpoint = msg.catchupSetpoint || flow.get('dynamicSetpoint') || config.setpointExport || -9500;\n        targetMinSoc   = config.minSocNormal || 20;\n        break;\n\n    case 'EXPORT': {\n        // v15 fix: bands are RELATIVE to the active daytime floor, not\n        // absolute SoC. daytimeFloor is dynamic - the Forecast Adjuster\n        // can drop it as low as dynamicFloorMinAbs (55) on high-forecast\n        // days - but the old rungs were hardcoded at 90/85/82/80, so any\n        // time the floor fell below 80 the switch fell straight through\n        // to -150W. That silently disabled export in exactly the window\n        // the dynamic floor exists to create, which is a large part of\n        // why SoC kept walking up to ~97% by midday.\n        const floor = flow.get('daytimeFloor') || config.daytimeFloorWeekday || 80;\n        const above = soc - floor;              // headroom above the ACTIVE floor\n\n        if      (above >= 10) targetSetpoint = config.exportBandFull    || -9500;\n        else if (above >=  5) targetSetpoint = config.exportBandStrong  || -7000;\n        else if (above >=  2) targetSetpoint = config.exportBandGentle  || -5000;\n        else if (above >=  0) targetSetpoint = config.exportBandMinimal || -2000;\n        else                  targetSetpoint = config.setpointNormal    || -150;\n\n        // v15: PV full-export override. Above pvFullExportOnW the array\n        // is producing surplus faster than the lower bands can shed it,\n        // so throttling just parks the excess in the battery and SoC\n        // climbs anyway. Go straight to full export instead.\n        // Latching hysteresis (on 8kW / off 7kW) stops the setpoint\n        // chattering on a partly-cloudy day when PV hunts the threshold.\n        // Scope is deliberately EXPORT-only: below the floor, climbing is\n        // the DESIRED behaviour, and forcing full export there would pull\n        // the pack down through the floor to feed the grid.\n        const pvW     = flow.get('pvPowerW') || 0;\n        const pvOn    = config.pvFullExportOnW  || 8000;\n        const pvOff   = config.pvFullExportOffW || 7000;\n        const latched = flow.get('pvOverrideActive') || false;\n        pvOverride    = latched ? (pvW > pvOff) : (pvW > pvOn);\n        if (pvOverride) targetSetpoint = config.exportBandFull || -9500;\n\n        targetMinSoc = config.minSocNormal || 20;\n        break;\n    }\n\n    case 'FREECHARGE':\n        targetSetpoint = config.setpointFreeCharge || 9000;\n        targetMinSoc   = config.minSocFreeCharge   || 100;\n        break;\n\n    default:  // NORMAL, PROTECT, FAULT\n        targetSetpoint = config.setpointNormal || -150;\n        targetMinSoc   = config.minSocNormal   || 20;\n        break;\n}\n\n// v16.4: BIG-SOLAR-DAY export. The first time PV exceeds pvFullExportOnW\n// (8000W) on a day the forecast calls big (isBigForecastDay), the day is\n// latched: export at pvSurplusExportW (-9000W) in EXPORT/NORMAL/PROTECT\n// whatever passing cloud does to PV, so the battery is emptied to make room\n// for up to ~14.5kW of charging. Stops under pvSurplusExportMinSoc (40%,\n// re-arms at ResumeSoc 43%), late in the day (sunset - 3h, else 16:30), or\n// when PV stays under pvBigDayLowPvW for pvBigDayLowPvMin minutes (bust day).\nlet pvSurplusExport = false;\nlet bigDayArmed = false;\n{\n    const pvW       = flow.get('pvPowerW') || 0;\n    const onW       = config.pvFullExportOnW || 8000;\n    const minSoc    = config.pvSurplusExportMinSoc    != null ? config.pvSurplusExportMinSoc    : 40;\n    const resumeSoc = config.pvSurplusExportResumeSoc != null ? config.pvSurplusExportResumeSoc : 43;\n    const lowW      = config.pvBigDayLowPvW   != null ? config.pvBigDayLowPvW   : 3000;\n    const lowMin    = config.pvBigDayLowPvMin != null ? config.pvBigDayLowPvMin : 45;\n    const nowB      = new Date();\n    const nowHfB    = nowB.getHours() + nowB.getMinutes() / 60;\n    const today     = nowB.toDateString();\n    const wasActive = flow.get('pvSurplusExportActive') || false;\n    const modeOk    = (mode === 'EXPORT' || mode === 'NORMAL' || mode === 'PROTECT');  // never FAULT / FREECHARGE / DYNAMIC\n    const bigDay    = flow.get('isBigForecastDay') === true;\n\n    // Arm for the day (re-arm after a bust-day stop if PV recovers)\n    if (modeOk && bigDay && pvW > onW &&\n        (flow.get('pvBigDayArmedDate') !== today || flow.get('pvBigDayEndedDate') === today)) {\n        flow.set('pvBigDayArmedDate', today);\n        flow.set('pvBigDayEndedDate', null);\n        flow.set('pvBigDayLowSince', null);\n    }\n    // Bust-day detector: PV low for long enough ends the latch (not a brief cloud)\n    if (flow.get('pvBigDayArmedDate') === today && flow.get('pvBigDayEndedDate') !== today) {\n        if (pvW < lowW) {\n            const since = flow.get('pvBigDayLowSince') || Date.now();\n            flow.set('pvBigDayLowSince', since);\n            if (Date.now() - since >= lowMin * 60000) flow.set('pvBigDayEndedDate', today);\n        } else {\n            flow.set('pvBigDayLowSince', null);\n        }\n    }\n    bigDayArmed = flow.get('pvBigDayArmedDate') === today && flow.get('pvBigDayEndedDate') !== today;\n\n    const sunsetH = flow.get('sunsetH');\n    const endH    = (sunsetH != null && sunsetH > 12 && sunsetH < 23)\n                  ? sunsetH - (config.pvBigDayEndBeforeSunsetH != null ? config.pvBigDayEndBeforeSunsetH : 3)\n                  : (config.pvBigDayEndFallbackHour != null ? config.pvBigDayEndFallbackHour : 16.5);\n    const socOk   = soc != null && !flow.get('socStale') && (wasActive ? soc >= minSoc : soc >= resumeSoc);\n\n    pvSurplusExport = modeOk && bigDayArmed && nowHfB < endH && socOk;\n    if (pvSurplusExport) {\n        targetSetpoint = Math.min(targetSetpoint, config.pvSurplusExportW || -9000);\n    }\n}\n\n// v16.1 hard guard: no export before noExportBeforeHour (default 08:00).\n// Clamps any setpoint below setpointNormal back to -150W regardless of\n// which branch asked for it. FREECHARGE (positive import) is untouched.\nlet preDawnClamp = false;\n{\n    const nowD  = new Date();\n    const nowHr = nowD.getHours() + nowD.getMinutes() / 60;\n    const limH  = config.noExportBeforeHour != null ? config.noExportBeforeHour : 8;\n    const normW = config.setpointNormal || -150;\n    const preDawnOk = flow.get('preDawnExportActive') === true;   // big-day pre-dawn export\n    if (nowHr < limH && mode !== 'FREECHARGE' && !preDawnOk && targetSetpoint < normW) {\n        targetSetpoint = normW;\n        pvOverride     = false;\n        pvSurplusExport = false;\n        preDawnClamp   = true;\n    }\n}\n\n// Latch clears automatically whenever the mode leaves EXPORT.\nflow.set('pvOverrideActive', pvOverride);\nflow.set('pvSurplusExportActive', pvSurplusExport);\n\nconst lastSetpoint = flow.get('lastSetpoint');\nconst lastMinSoc   = flow.get('lastMinSoc');\nconst isFault      = mode === 'FAULT';\n\n// Re-assert periodically so the controller self-heals if anything\n// else (GX reboot, VRM, ESS assistant) touches the settings.\nconst nowTs      = Date.now();\nconst reassertMs = (config.setpointReassertSec || 300) * 1000;\nconst lastWrite  = flow.get('lastWriteTs') || 0;\nconst reassert   = (nowTs - lastWrite) >= reassertMs;\n\nconst writeSetpoint = isFault || reassert || lastSetpoint === undefined\n                    || Math.abs(targetSetpoint - lastSetpoint) >= deadband;\nconst writeMinSoc   = isFault || reassert || lastMinSoc !== targetMinSoc;\n\nif (writeSetpoint) flow.set('lastSetpoint', targetSetpoint);\nif (writeMinSoc)   flow.set('lastMinSoc',   targetMinSoc);\nif (writeSetpoint || writeMinSoc) flow.set('lastWriteTs', nowTs);\n\nlet statusText;\nif (mode === 'EXPORT') {\n    const fl = flow.get('daytimeFloor');\n    statusText = 'EXPORT | SoC:' + (soc != null ? soc.toFixed(1) : '?') + '%'\n        + (fl != null && soc != null ? ' (+' + (soc - fl).toFixed(1) + ' over ' + fl + '%)' : '')\n        + ' SP:' + targetSetpoint + 'W'\n        + (pvOverride ? ' | PV-OVR ' + ((flow.get('pvPowerW') || 0) / 1000).toFixed(1) + 'kW' : '');\n} else if (mode === 'DYNAMIC') {\n    statusText = 'DYNAMIC | SP:' + targetSetpoint + 'W';\n} else {\n    statusText = mode + ' | SP:' + targetSetpoint + 'W MinSoC:' + targetMinSoc + '%';\n}\nif (pvSurplusExport) statusText += ' | BIG-DAY EXPORT ' + ((flow.get('pvPowerW') || 0) / 1000).toFixed(1) + 'kW';\nelse if (bigDayArmed) statusText += ' | BIG-DAY armed (SoC/time hold)';\nif (preDawnClamp) statusText += ' | PRE-8AM HOLD';\nif (flow.get('preDawnExportActive') === true && mode === 'EXPORT') statusText += ' | PRE-DAWN';\nif (reassert && (writeSetpoint || writeMinSoc)) statusText += ' ↻';\nnode.status({\n    fill: mode === 'FAULT' ? 'red' : mode === 'FREECHARGE' ? 'green' :\n          (mode === 'EXPORT' || mode === 'DYNAMIC') ? 'blue' : 'grey',\n    shape: 'dot', text: statusText\n});\n\nreturn [\n    writeSetpoint ? { payload: targetSetpoint } : null,\n    writeMinSoc   ? { payload: targetMinSoc   } : null,\n];",
         "outputs": 2,
@@ -345,18 +346,18 @@
         "y": 60,
         "wires": [
             [
-                "2338948fef99e728"
+                "70b861ceb3a06478"
             ],
             [
-                "39f0db33e84b3725"
+                "228bc6f019a004c6"
             ]
         ]
     },
     {
-        "id": "2338948fef99e728",
+        "id": "70b861ceb3a06478",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Setpoint write",
         "func": "if (msg.payload !== null && msg.payload !== undefined) {\n    node.status({ fill: 'blue', shape: 'dot', text: 'Writing: ' + msg.payload + 'W' });\n}\nreturn msg;",
         "outputs": 1,
@@ -369,15 +370,15 @@
         "y": 60,
         "wires": [
             [
-                "fb15480bd2558e29"
+                "5d582c421d9cf9f3"
             ]
         ]
     },
     {
-        "id": "39f0db33e84b3725",
+        "id": "228bc6f019a004c6",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Min SoC write",
         "func": "if (msg.payload !== null && msg.payload !== undefined) {\n    node.status({ fill: 'green', shape: 'dot', text: 'Writing: ' + msg.payload + '%' });\n}\nreturn msg;",
         "outputs": 1,
@@ -390,15 +391,15 @@
         "y": 140,
         "wires": [
             [
-                "b0f10666aa502aea"
+                "cd3bd19c48aef8ca"
             ]
         ]
     },
     {
-        "id": "fb15480bd2558e29",
+        "id": "5d582c421d9cf9f3",
         "type": "victron-output-ess",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "outputs": 0,
         "service": "com.victronenergy.settings",
         "path": "/Settings/CGwacs/AcPowerSetPoint",
@@ -424,10 +425,10 @@
         "wires": []
     },
     {
-        "id": "b0f10666aa502aea",
+        "id": "cd3bd19c48aef8ca",
         "type": "victron-output-ess",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "outputs": 0,
         "service": "com.victronenergy.settings",
         "path": "/Settings/CGwacs/BatteryLife/MinimumSocLimit",
@@ -453,12 +454,12 @@
         "wires": []
     },
     {
-        "id": "a41cb20c7833af46",
+        "id": "afa3fbd88f962cce",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "State publisher",
-        "func": "// Publishes the full controller state every 60s for HA dashboards.\nconst state = msg.state || flow.get('currentState') || {};\nconst r2 = v => (v === null || v === undefined) ? null : parseFloat(Number(v).toFixed(2));\n\nstate.forecast = {\n    kwhToday:      flow.get('forecastKwh'),\n    kwhRaw:        flow.get('forecastRaw'),\n    dynamicTarget: flow.get('dynamicTarget'),\n    arrays:        flow.get('forecastArrays'),\n    fetchedAt:     flow.get('forecastFetchedAt'),\n    valid:         flow.get('forecastValid') || false,\n    confidence:    flow.get('forecastConfidence'),\n    surplusKwh:    flow.get('forecastSurplusKwh'),     // v16: PV above inverter ceiling still to come today\n    surplusDay:    flow.get('isSurplusDay') || false,  // v16\n    trackSoc:      flow.get('surplusTrackSoc'),        // v16: SoC the day is steered onto\n    bigDay:        flow.get('isBigForecastDay') || false,  // v16.1: forecast >= bigDayForecastKwh today\n    bigDayFloor:   flow.get('bigDayFloorActive') || false, // v16.1: big-day bottom currently applied\n    hourly:        flow.get('forecastHourly'),         // v16: [{h, kw}]\n};\n// v16.1: report what's actually written to the Cerbo, for dashboards\nstate.setpointW   = flow.get('lastSetpoint');   // grid setpoint (W, negative = export)\nstate.minSocW     = flow.get('lastMinSoc');     // ESS MinSoC written (%)\nstate.overnightEndH = flow.get('overnightEndH');\nstate.weather = flow.get('weather');\nstate.sun = {\n    sunriseH: flow.get('sunriseH'),\n    sunsetH:  flow.get('sunsetH'),\n    weekendExportCutoff: flow.get('weekendExportCutoff'),\n    weekendCutoffSource: flow.get('weekendCutoffSource'),\n    overnightEndH: flow.get('overnightEndH'),          // v16\n    earlyExportStartH: flow.get('earlyExportStartH'),  // v16\n    preDawnExportStartH: flow.get('preDawnExportStartH'),       // v16.1\n    preDawnExportActive: flow.get('preDawnExportActive') || false, // v16.1\n};\nstate.battery = {\n    cclA: flow.get('battCclA'),          // GSL CCL - graph vs PV to watch MPPT clipping\n};\nstate.pv = {\n    powerW:   flow.get('pvPowerW') || 0,\n    accumKwh: r2(flow.get('pvAccumKwh') || 0),\n    fullExportOverride: (flow.get('pvOverrideActive') || false) || (flow.get('pvSurplusExportActive') || false),   // v15 + v16.3\n    surplusExport: flow.get('pvSurplusExportActive') || false,   // v16.4: big-solar-day export active\n    bigSolarDayArmed: flow.get('pvBigDayArmedDate') === new Date().toDateString() && flow.get('pvBigDayEndedDate') !== new Date().toDateString(),   // v16.4\n};\nstate.grid = {\n    powerW:    flow.get('gridPowerW') || 0,\n    exportKwh: r2(flow.get('gridExportKwh') || 0),\n    importKwh: r2(flow.get('gridImportKwh') || 0),\n};\nstate.ac = {\n    powerW:   flow.get('acConsumptionW') || 0,\n    accumKwh: r2(flow.get('acAccumKwh') || 0),\n};\n\nmsg.topic   = 'victron/ess/state';\nmsg.payload = JSON.stringify(state);\nmsg.retain  = false;\nmsg.qos     = 0;\n\nconst wx = state.weather ? state.weather.label : 'no weather';\nnode.status({ fill: 'blue', shape: 'dot',\n    text: 'mode:' + state.mode + ' soc:' + (state.soc != null ? state.soc + '%' : 'n/a')\n        + ' pv:' + (state.pv.powerW || 0) + 'W ' + wx\n        + (state.pv.fullExportOverride ? ' [PV-OVR]' : '') });\nreturn msg;",
+        "func": "// Publishes the full controller state every 60s for HA dashboards.\nconst state = msg.state || flow.get('currentState') || {};\nconst r2 = v => (v === null || v === undefined) ? null : parseFloat(Number(v).toFixed(2));\n\nstate.forecast = {\n    kwhToday:      flow.get('forecastKwh'),\n    kwhRaw:        flow.get('forecastRaw'),\n    dynamicTarget: flow.get('dynamicTarget'),\n    arrays:        flow.get('forecastArrays'),\n    fetchedAt:     flow.get('forecastFetchedAt'),\n    valid:         flow.get('forecastValid') || false,\n    confidence:    flow.get('forecastConfidence'),\n    surplusKwh:    flow.get('forecastSurplusKwh'),     // v16: PV above inverter ceiling still to come today\n    surplusDay:    flow.get('isSurplusDay') || false,  // v16\n    trackSoc:      flow.get('surplusTrackSoc'),        // v16: SoC the day is steered onto\n    bigDay:        flow.get('isBigForecastDay') || false,  // v16.1: forecast >= bigDayForecastKwh today\n    bigDayFloor:   flow.get('bigDayFloorActive') || false, // v16.1: big-day bottom currently applied\n    hourly:        flow.get('forecastHourly'),         // v16: [{h, kw}]\n};\n// v16.1: report what's actually written to the Cerbo, for dashboards\nstate.setpointW   = flow.get('lastSetpoint');   // grid setpoint (W, negative = export)\nstate.minSocW     = flow.get('lastMinSoc');     // ESS MinSoC written (%)\nstate.overnightEndH = flow.get('overnightEndH');\nstate.weather = flow.get('weather');\nstate.weatherImpact = flow.get('weatherImpact');   // v16.6: rain/storm severity + bumps applied\nstate.sun = {\n    sunriseH: flow.get('sunriseH'),\n    sunsetH:  flow.get('sunsetH'),\n    weekendExportCutoff: flow.get('weekendExportCutoff'),\n    weekendCutoffSource: flow.get('weekendCutoffSource'),\n    overnightEndH: flow.get('overnightEndH'),          // v16\n    earlyExportStartH: flow.get('earlyExportStartH'),  // v16\n    preDawnExportStartH: flow.get('preDawnExportStartH'),       // v16.1\n    preDawnExportActive: flow.get('preDawnExportActive') || false, // v16.1\n};\nstate.battery = {\n    cclA: flow.get('battCclA'),          // GSL CCL - graph vs PV to watch MPPT clipping\n};\nstate.pv = {\n    powerW:   flow.get('pvPowerW') || 0,\n    accumKwh: r2(flow.get('pvAccumKwh') || 0),\n    fullExportOverride: (flow.get('pvOverrideActive') || false) || (flow.get('pvSurplusExportActive') || false),   // v15 + v16.3\n    surplusExport: flow.get('pvSurplusExportActive') || false,   // v16.4: big-solar-day export active\n    bigSolarDayArmed: flow.get('pvBigDayArmedDate') === new Date().toDateString() && flow.get('pvBigDayEndedDate') !== new Date().toDateString(),   // v16.4\n};\nstate.grid = {\n    powerW:    flow.get('gridPowerW') || 0,\n    exportKwh: r2(flow.get('gridExportKwh') || 0),\n    importKwh: r2(flow.get('gridImportKwh') || 0),\n};\nstate.ac = {\n    powerW:   flow.get('acConsumptionW') || 0,\n    accumKwh: r2(flow.get('acAccumKwh') || 0),\n};\n\nmsg.topic   = 'victron/ess/state';\nmsg.payload = JSON.stringify(state);\nmsg.retain  = false;\nmsg.qos     = 0;\n\nconst wx = state.weather ? state.weather.label : 'no weather';\nnode.status({ fill: 'blue', shape: 'dot',\n    text: 'mode:' + state.mode + ' soc:' + (state.soc != null ? state.soc + '%' : 'n/a')\n        + ' pv:' + (state.pv.powerW || 0) + 'W ' + wx\n        + (state.pv.fullExportOverride ? ' [PV-OVR]' : '') });\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -469,15 +470,15 @@
         "y": 240,
         "wires": [
             [
-                "fc941a59e6cdb68b"
+                "3862958a9c293383"
             ]
         ]
     },
     {
-        "id": "fc941a59e6cdb68b",
+        "id": "3862958a9c293383",
         "type": "mqtt out",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "→ victron/ess/state",
         "topic": "victron/ess/state",
         "qos": "0",
@@ -493,10 +494,10 @@
         "wires": []
     },
     {
-        "id": "178746dfa190d73c",
+        "id": "8099b63cbd13d49c",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "Free-charge accumulator",
         "func": "// Accumulates kWh imported during Phase C (FREECHARGE) using the\n// live measured grid power. Resets at 21:00 on active days.\n// Restart-safe: reseeded from the retained energy snapshot.\nconst state  = msg.state || flow.get('currentState') || {};\nconst mode   = state.mode;\nconst now    = new Date();\nconst config = flow.get('config') || {};\nconst rate   = config.freeRateNZD || 0.48;   // $/kWh incl. GST\n\nconst activeDays  = config.activeDays || [1,2,3,4,5];\nconst isActiveDay = activeDays.includes(now.getDay());\n\n// v10.9 fix: the old reset only fired during the exact 21:00 hour,\n// once per day. If Node-RED restarted/redeployed during that specific\n// hour on any given day, the reset for that whole day was silently\n// skipped entirely, and the accumulator carried straight over into\n// the next night - explaining totals that look like ~2x a normal\n// night. Reset on the FIRST Phase C message of a new day instead -\n// can't be missed by restart timing, since Phase C only happens\n// during the free window anyway.\nif (mode === 'FREECHARGE' && flow.get('freeChargeResetDay') !== now.toDateString()) {\n    flow.set('freeChargeKwh', 0);\n    flow.set('freeChargeResetDay', now.toDateString());\n    node.status({ fill: 'yellow', shape: 'dot', text: 'Reset ' + now.toDateString() + ' @ start of Phase C' });\n}\n\nif (mode !== 'FREECHARGE') {\n    const stored = flow.get('freeChargeKwh') || 0;\n    node.status({ fill: 'grey', shape: 'ring',\n        text: 'Not Phase C | total: ' + stored.toFixed(3) + ' kWh ($' + (stored * rate).toFixed(2) + ')' });\n    return null;\n}\n\nconst gridPowerW = flow.get('gridPowerW');\nif (gridPowerW === null || gridPowerW === undefined) {\n    node.status({ fill: 'yellow', shape: 'ring', text: 'Phase C - waiting for grid power' });\n    return null;\n}\n\nconst importW      = Math.max(0, gridPowerW);\nconst intervalSec  = config.loopIntervalSec || 60;\nconst updated      = (flow.get('freeChargeKwh') || 0) + (importW * intervalSec) / 3600 / 1000;\nflow.set('freeChargeKwh', updated);\n\nconst savingsNZD = updated * rate;\nnode.status({ fill: 'green', shape: 'dot',\n    text: 'Phase C: ' + updated.toFixed(3) + ' kWh = $' + savingsNZD.toFixed(2)\n        + ' NZD (' + Math.round(importW) + 'W)' });\n\nmsg.topic   = 'victron/ess/free_charge_kwh';\nmsg.payload = JSON.stringify({\n    kwhTonight: parseFloat(updated.toFixed(3)),\n    powerW:     Math.round(importW),\n    savingsNZD: parseFloat(savingsNZD.toFixed(2)),\n    rateNZD:    rate,\n    activeDay:  isActiveDay,\n    timestamp:  now.toISOString()\n});\nmsg.retain = true;\nmsg.qos    = 1;\nreturn msg;",
         "outputs": 1,
@@ -509,15 +510,15 @@
         "y": 320,
         "wires": [
             [
-                "31d5ff5cef7d0f72"
+                "e035021f316f5d96"
             ]
         ]
     },
     {
-        "id": "31d5ff5cef7d0f72",
+        "id": "e035021f316f5d96",
         "type": "mqtt out",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "→ victron/ess/free_charge_kwh",
         "topic": "victron/ess/free_charge_kwh",
         "qos": "1",
@@ -533,10 +534,10 @@
         "wires": []
     },
     {
-        "id": "5ecce33238bffc87",
+        "id": "d0134390258275ee",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "Energy snapshot",
         "func": "// v16.5: do NOT publish until the Reseed node has restored today's counters\n// (or 30 s have passed with no snapshot). Without this, the first tick after a\n// redeploy published zeros as the RETAINED snapshot and wiped the day's totals.\nif (!flow.get('energyReseedDone')) {\n    const t0 = flow.get('energySnapT0');\n    if (!t0) { flow.set('energySnapT0', Date.now()); return null; }\n    if (Date.now() - t0 < 30000) return null;\n    flow.set('energyReseedDone', true);   // broker/snapshot never arrived: carry on\n}\n// Retained daily-energy snapshot. Doubles as the restart-persistence\n// store: the Reseed node restores these values after a redeploy.\nconst r3 = v => parseFloat((v || 0).toFixed(3));\nmsg.topic   = 'victron/ess/energy_today';\nmsg.payload = JSON.stringify({\n    date:               new Date().toDateString(),\n    pvKwh:              r3(flow.get('pvAccumKwh')),\n    importKwh:          r3(flow.get('gridImportKwh')),\n    exportKwh:          r3(flow.get('gridExportKwh')),\n    acKwh:              r3(flow.get('acAccumKwh')),\n    freeChargeKwh:      r3(flow.get('freeChargeKwh')),\n    freeChargeResetDay: flow.get('freeChargeResetDay') || null,\n    timestamp:          new Date().toISOString()\n});\nmsg.retain = true;\nmsg.qos    = 1;\nnode.status({ fill: 'blue', shape: 'dot',\n    text: 'PV:' + r3(flow.get('pvAccumKwh')) + ' ↓' + r3(flow.get('gridImportKwh'))\n        + ' ↑' + r3(flow.get('gridExportKwh')) + ' kWh' });\nreturn msg;",
         "outputs": 1,
@@ -549,15 +550,15 @@
         "y": 400,
         "wires": [
             [
-                "dc51f90c27f0fe01"
+                "d9a8d28828d9604a"
             ]
         ]
     },
     {
-        "id": "dc51f90c27f0fe01",
+        "id": "d9a8d28828d9604a",
         "type": "mqtt out",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "→ victron/ess/energy_today",
         "topic": "victron/ess/energy_today",
         "qos": "1",
@@ -573,10 +574,10 @@
         "wires": []
     },
     {
-        "id": "8d77a4f613b7366b",
+        "id": "82be1c7b419a3444",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "21a1d086a4890eec",
+        "z": "f2d3b29112c78fc5",
+        "g": "d8ac1dcfdeb44316",
         "name": "Battery time calc",
         "func": "// Time-to-empty (to hard min SoC) and time-to-full estimates.\n// Charge source detection uses REAL sunrise/sunset from the forecast\n// (DST-safe) instead of a fixed window.\nconst config     = flow.get('config') || {};\nconst soc        = flow.get('soc');\nconst acLoadW    = flow.get('acConsumptionW') || 0;\nconst pvPowerW   = flow.get('pvPowerW') || 0;\nconst phase      = flow.get('phase');\nconst battCapKwh = config.batteryCapacityKwh || 28.68;\nconst minSocHard = config.minSocNormal || 20;\nconst gridChargeW = config.setpointFreeCharge || 9000;\n\nconst now  = new Date();\nconst nowH = now.getHours() + now.getMinutes() / 60;\n\n// Solar window from live sunrise/sunset (fallbacks only until first fetch)\nconst sunriseH   = flow.get('sunriseH');\nconst sunsetH    = flow.get('sunsetH');\nconst solarStart = (sunriseH !== null && sunriseH !== undefined ? sunriseH : 7.5) + 0.5;\nconst solarEnd   = (sunsetH  !== null && sunsetH  !== undefined ? sunsetH  : 17.5) - 0.5;\n\nfunction hhmm(mins) {\n    const h = Math.floor(mins / 60), m = Math.floor(mins % 60);\n    return h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');\n}\n\n// -- Time to empty -------------------------------------------------\nlet tteMin = null, tteHHMM = null;\nif (soc !== null && soc !== undefined && soc > minSocHard && acLoadW > 0) {\n    const kwhUsable = ((soc - minSocHard) / 100) * battCapKwh;\n    tteMin  = kwhUsable / (acLoadW / 1000) * 60;\n    tteHHMM = hhmm(tteMin);\n}\nflow.set('timeToEmptyMinutes', tteMin);\nflow.set('timeToEmptyHHMM', tteHHMM);\n\n// -- Time to full --------------------------------------------------\nlet ttcMin = null, ttcHHMM = null, chargeSource = '';\nif (soc !== null && soc !== undefined && soc < 100) {\n    const kwhNeeded = ((100 - soc) / 100) * battCapKwh;\n    let chargeW = 0;\n    if (phase === 'C') {\n        chargeW = gridChargeW;\n        chargeSource = 'GRID';\n    } else if (nowH >= solarStart && nowH < solarEnd && pvPowerW > 500) {\n        chargeW = Math.max(0, (pvPowerW * 0.85) - acLoadW);   // inverter losses approx\n        chargeSource = 'SOLAR';\n    }\n    if (chargeW > 200) {\n        ttcMin  = kwhNeeded / (chargeW / 1000) * 60;\n        ttcHHMM = hhmm(ttcMin);\n    }\n}\nflow.set('timeToChargeMinutes', ttcMin);\nflow.set('timeToChargeHHMM', ttcHHMM);\nflow.set('timeToChargeSource', chargeSource);\n\nlet text = '';\nlet fill = 'grey';\nif (tteHHMM) {\n    text = '↓ ' + tteHHMM + ' to ' + minSocHard + '%';\n    fill = tteMin > 240 ? 'green' : tteMin > 120 ? 'yellow' : 'red';\n    if (ttcHHMM) { text += ' | ↑ ' + ttcHHMM + ' (' + chargeSource + ')'; if (chargeSource === 'GRID') fill = 'blue'; }\n} else if (ttcHHMM) {\n    text = '↑ ' + ttcHHMM + ' to 100% (' + chargeSource + ')';\n    fill = 'blue';\n} else {\n    text = 'No load / no charge source';\n}\nif (soc !== null && soc !== undefined) text += ' | SoC:' + soc.toFixed(1) + '%';\nnode.status({ fill: fill, shape: 'dot', text: text });\nreturn msg;",
         "outputs": 1,
@@ -589,15 +590,15 @@
         "y": 240,
         "wires": [
             [
-                "17624ce5c7483475"
+                "9115664191961a24"
             ]
         ]
     },
     {
-        "id": "17624ce5c7483475",
+        "id": "9115664191961a24",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "21a1d086a4890eec",
+        "z": "f2d3b29112c78fc5",
+        "g": "d8ac1dcfdeb44316",
         "name": "Battery time → JSON",
         "func": "const tte = flow.get('timeToEmptyHHMM');\nconst ttc = flow.get('timeToChargeHHMM');\nconst soc = flow.get('soc');\nmsg.topic   = 'victron/ess/battery_time';\nmsg.payload = JSON.stringify({\n    dischargeHHMM: tte || null,\n    dischargeMin:  flow.get('timeToEmptyMinutes')  !== null ? Math.round(flow.get('timeToEmptyMinutes'))  : null,\n    chargeHHMM:    ttc || null,\n    chargeMin:     flow.get('timeToChargeMinutes') !== null ? Math.round(flow.get('timeToChargeMinutes')) : null,\n    chargeSource:  flow.get('timeToChargeSource') || '',\n    soc:           soc !== null && soc !== undefined ? parseFloat(soc.toFixed(1)) : null,\n    timestamp:     new Date().toISOString()\n});\nmsg.retain = true;\nmsg.qos    = 1;\nnode.status({ fill: 'blue', shape: 'dot', text: (tte || '--') + ' ↓  ' + (ttc || '--') + ' ↑' });\nreturn msg;",
         "outputs": 1,
@@ -610,15 +611,15 @@
         "y": 240,
         "wires": [
             [
-                "3912b8b88c35a7f4"
+                "335617a7e718b026"
             ]
         ]
     },
     {
-        "id": "3912b8b88c35a7f4",
+        "id": "335617a7e718b026",
         "type": "mqtt out",
-        "z": "c7500b69ae0a5e29",
-        "g": "21a1d086a4890eec",
+        "z": "f2d3b29112c78fc5",
+        "g": "d8ac1dcfdeb44316",
         "name": "→ victron/ess/battery_time",
         "topic": "victron/ess/battery_time",
         "qos": "1",
@@ -634,10 +635,10 @@
         "wires": []
     },
     {
-        "id": "737cafd14f3ceb86",
+        "id": "13e3fd5d5ec7a796",
         "type": "inject",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "Watchdog — 30 s",
         "props": [
             {
@@ -654,15 +655,15 @@
         "y": 340,
         "wires": [
             [
-                "e767c1ae997a5e02"
+                "01152f9334d7240b"
             ]
         ]
     },
     {
-        "id": "e767c1ae997a5e02",
+        "id": "01152f9334d7240b",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "SoC stale watchdog",
         "func": "// Trips the socStale fault if SoC hasn't updated within the\n// configured timeout (single source of truth: CONFIG).\nconst config  = flow.get('config') || {};\nconst timeout = (config.socStaleTimeoutSec || 120) * 1000;\nconst lastUpd = flow.get('socLastUpdated');\nif (!lastUpd || (Date.now() - lastUpd) > timeout) {\n    flow.set('socStale', true);\n    node.status({ fill: 'red', shape: 'ring', text: 'SoC STALE' });\n} else {\n    flow.set('socStale', false);\n    node.status({ fill: 'green', shape: 'dot', text: 'SoC fresh' });\n}\nreturn null;",
         "outputs": 1,
@@ -678,10 +679,10 @@
         ]
     },
     {
-        "id": "ffcbef3039d0eac6",
+        "id": "0568333949cf1250",
         "type": "inject",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "Startup (once)",
         "props": [
             {
@@ -698,15 +699,15 @@
         "y": 420,
         "wires": [
             [
-                "9ec6d0f3ecc55117"
+                "b60d518dc453dfd9"
             ]
         ]
     },
     {
-        "id": "9ec6d0f3ecc55117",
+        "id": "b60d518dc453dfd9",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "Startup hold (5 s)",
         "func": "// Blocks ESS writes for 5s after (re)deploy so all inputs settle.\nflow.set('startupHold', true);\nnode.status({ fill: 'yellow', shape: 'ring', text: 'Startup hold...' });\nsetTimeout(function() {\n    flow.set('startupHold', false);\n    node.status({ fill: 'green', shape: 'dot', text: 'Startup complete' });\n}, 5000);\nreturn null;",
         "outputs": 1,
@@ -722,10 +723,10 @@
         ]
     },
     {
-        "id": "5d8b52249f7418a4",
+        "id": "74aeaa3d70b61a02",
         "type": "mqtt in",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "← victron/override",
         "topic": "victron/override",
         "qos": "1",
@@ -739,15 +740,15 @@
         "y": 500,
         "wires": [
             [
-                "fc7296aea837374a"
+                "5b4be2c03858427c"
             ]
         ]
     },
     {
-        "id": "fc7296aea837374a",
+        "id": "5b4be2c03858427c",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "Override handler",
         "func": "// HA-driven kill switch: forces FAULT mode (-150W hold).\nconst raw = msg.payload;\nlet override = false;\nif      (typeof raw === 'boolean') override = raw;\nelse if (typeof raw === 'number')  override = raw === 1;\nelse if (typeof raw === 'string')  override = ['true','1','on','yes'].includes(raw.toLowerCase());\nflow.set('manualOverride', override);\nnode.status({ fill: override ? 'red' : 'green', shape: 'dot',\n    text: override ? 'OVERRIDE ACTIVE' : 'Override off' });\nreturn null;",
         "outputs": 1,
@@ -763,10 +764,10 @@
         ]
     },
     {
-        "id": "cebbbd504144d706",
+        "id": "051b06208cbcbbc2",
         "type": "mqtt in",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "← victron/ess/energy_today (retained)",
         "topic": "victron/ess/energy_today",
         "qos": "1",
@@ -780,15 +781,15 @@
         "y": 580,
         "wires": [
             [
-                "51ffa9c94cba8fef"
+                "65dc76469996c39b"
             ]
         ]
     },
     {
-        "id": "51ffa9c94cba8fef",
+        "id": "65dc76469996c39b",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "6c9d6e1d1739fc95",
+        "z": "f2d3b29112c78fc5",
+        "g": "04ef772e2f571be7",
         "name": "Reseed after restart",
         "func": "// Restores today's accumulators from the retained snapshot so a\n// Node-RED restart or redeploy never zeroes the daily counters.\n// Idempotent: only ever raises a counter, never lowers it.\nlet p;\ntry { p = JSON.parse(msg.payload); } catch (e) { return null; }\nif (!p || p.date !== new Date().toDateString()) {\n    flow.set('energyReseedDone', true);   // v16.5: nothing to restore, publishing may start\n    node.status({ fill: 'grey', shape: 'ring', text: 'Snapshot stale - ignored' });\n    return null;\n}\nfunction restore(key, val) {\n    if (val === null || val === undefined || isNaN(val)) return;\n    if (val > (flow.get(key) || 0)) flow.set(key, val);\n}\nrestore('gridImportKwh', p.importKwh);\nrestore('gridExportKwh', p.exportKwh);\nrestore('acAccumKwh',    p.acKwh);\nrestore('freeChargeKwh', p.freeChargeKwh);\nif (p.freeChargeResetDay) flow.set('freeChargeResetDay', p.freeChargeResetDay);\nflow.set('gridEnergyDay', p.date);\nflow.set('energyReseedDone', true);   // v16.5: restored, publishing may start\nflow.set('acAccumDay',    p.date);\nnode.status({ fill: 'green', shape: 'dot',\n    text: 'Restored ↓' + (p.importKwh || 0) + ' ↑' + (p.exportKwh || 0)\n        + ' free:' + (p.freeChargeKwh || 0) + ' kWh' });\nreturn null;",
         "outputs": 1,
@@ -804,10 +805,10 @@
         ]
     },
     {
-        "id": "f3c7e558f34d1c50",
+        "id": "fa874430f17d4b26",
         "type": "victron-input-battery",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "outputs": 1,
         "service": "com.victronenergy.battery/512",
         "path": "/Soc",
@@ -825,15 +826,15 @@
         "y": 340,
         "wires": [
             [
-                "f31d2a424a623a40"
+                "4fd606660cd9b9bc"
             ]
         ]
     },
     {
-        "id": "f31d2a424a623a40",
+        "id": "4fd606660cd9b9bc",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "SoC store + freshness",
         "func": "if (msg.payload === null || msg.payload === undefined || isNaN(msg.payload)) {\n    flow.set('soc', null);\n    flow.set('socStale', true);\n    node.status({ fill: 'red', shape: 'dot', text: 'SoC missing' });\n    return null;\n}\nconst soc = parseFloat(msg.payload);\nflow.set('soc', soc);\nflow.set('socLastUpdated', Date.now());\nflow.set('socStale', false);\nnode.status({ fill: 'green', shape: 'dot', text: 'SoC: ' + soc.toFixed(1) + '%' });\nreturn null;",
         "outputs": 1,
@@ -849,10 +850,10 @@
         ]
     },
     {
-        "id": "0fa418dee75ad2fc",
+        "id": "545242a5cd6605fc",
         "type": "victron-input-battery",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "outputs": 1,
         "service": "com.victronenergy.battery/512",
         "path": "/Info/MaxChargeCurrent",
@@ -871,15 +872,15 @@
         "y": 400,
         "wires": [
             [
-                "a0dc0e3c034299fd"
+                "8d4d7cb9f04737fd"
             ]
         ]
     },
     {
-        "id": "a0dc0e3c034299fd",
+        "id": "8d4d7cb9f04737fd",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "CCL monitor + discharge flag",
         "func": "// GSL battery manages charge AND discharge through CCL.\n// CCL taper near full is normal behaviour (and clips the MPPTs -\n// cclA is stored + published so it can be graphed against PV in HA).\n// CCL=0 at high SoC = full battery, NOT a fault.\n// CCL=0 at low SoC  = genuine BMS block -> FAULT.\nconst ccl = parseFloat(msg.payload);\nif (isNaN(ccl)) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'Waiting for BMS data' });\n    return null;\n}\nflow.set('battCclA', ccl);\nconst soc = flow.get('soc');\n\nif (ccl === 0 && soc !== null && soc !== undefined && soc >= 95) {\n    flow.set('bmsAllowDischarge', true);\n    node.status({ fill: 'green', shape: 'dot',\n        text: 'CCL:0A - full battery (' + soc.toFixed(1) + '%) OK' });\n    return null;\n}\nconst blocked = ccl === 0;\nflow.set('bmsAllowDischarge', !blocked);\nnode.status(blocked\n    ? { fill: 'red', shape: 'dot', text: 'BMS BLOCK - CCL:0A SoC:' + (soc != null ? soc.toFixed(1) : '?') + '%' }\n    : { fill: 'green', shape: 'dot', text: 'CCL: ' + ccl + 'A' });\nreturn null;",
         "outputs": 1,
@@ -895,10 +896,10 @@
         ]
     },
     {
-        "id": "2a92f0874b8b76b1",
+        "id": "e9d8cefeb08ee7bf",
         "type": "victron-input-vebus",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "outputs": 1,
         "service": "com.victronenergy.vebus/276",
         "path": "/Ac/ActiveIn/L1/P",
@@ -918,15 +919,15 @@
         "y": 460,
         "wires": [
             [
-                "f39830af0e72e92c"
+                "60e1054565c6d74c"
             ]
         ]
     },
     {
-        "id": "f39830af0e72e92c",
+        "id": "60e1054565c6d74c",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "Grid power + kWh integrator",
         "func": "// Live grid power (+import / -export) AND software energy meter.\n// Integrates with REAL time deltas (the vebus kWh counters are not\n// available on this system). Daily reset at midnight; restart-safe\n// via the retained energy snapshot reseed.\nconst w = parseFloat(msg.payload);\nif (isNaN(w)) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'No grid data' });\n    return null;\n}\nflow.set('gridPowerW', w);\n\nconst now   = Date.now();\nconst today = new Date().toDateString();\nif (flow.get('gridEnergyDay') !== today) {\n    flow.set('gridImportKwh', 0);\n    flow.set('gridExportKwh', 0);\n    flow.set('gridEnergyDay', today);\n}\nconst lastTs = flow.get('gridLastTs');\nlet dtSec = lastTs ? (now - lastTs) / 1000 : 0;\nif (dtSec < 0 || dtSec > 120) dtSec = 0;   // ignore gaps (restart / reconnect)\nflow.set('gridLastTs', now);\n\nconst kwh = Math.abs(w) * dtSec / 3600 / 1000;\nif (w > 0) flow.set('gridImportKwh', (flow.get('gridImportKwh') || 0) + kwh);\nelse       flow.set('gridExportKwh', (flow.get('gridExportKwh') || 0) + kwh);\n\nnode.status({\n    fill: w > 0 ? 'red' : 'green', shape: 'dot',\n    text: (w > 0 ? 'Import: ' : 'Export: ') + Math.abs(Math.round(w)) + 'W'\n        + ' | ↑' + (flow.get('gridExportKwh') || 0).toFixed(2)\n        + ' ↓' + (flow.get('gridImportKwh') || 0).toFixed(2) + ' kWh'\n});\n\n// v10.5: expose the daily accumulator TOTALS this node already\n// maintains (gridImportKwh / gridExportKwh), not another live/instant\n// value - VRM's own \"To Grid\" / \"From Grid\" widgets show this same\n// kind of running total, this just makes it visible inside Node-RED too.\nreturn [\n    { payload: +(flow.get('gridImportKwh') || 0).toFixed(3), topic: 'grid_import_kwh_today' },\n    { payload: +(flow.get('gridExportKwh') || 0).toFixed(3), topic: 'grid_export_kwh_today' }\n];",
         "outputs": 2,
@@ -939,18 +940,18 @@
         "y": 460,
         "wires": [
             [
-                "eb9230f364e39ae3"
+                "5893a82145d19d6f"
             ],
             [
-                "9b1486bc0cb90cf8"
+                "c49e79f3f3420c75"
             ]
         ]
     },
     {
-        "id": "6ffcf28cd0179cf7",
+        "id": "7fb8d699585ed3a9",
         "type": "victron-input-vebus",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "outputs": 1,
         "service": "com.victronenergy.vebus/276",
         "path": "/Ac/Out/L1/P",
@@ -970,15 +971,15 @@
         "y": 580,
         "wires": [
             [
-                "5010701828a1398b"
+                "ef4cd12173bacc23"
             ]
         ]
     },
     {
-        "id": "5010701828a1398b",
+        "id": "ef4cd12173bacc23",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "AC load + kWh integrator",
         "func": "// Live house load (used by the evening dynamic setpoint) plus a\n// daily kWh accumulator using REAL time deltas (v10 fix: the old\n// version assumed a fixed 5 s message interval and drifted).\nconst raw = parseFloat(msg.payload);\nif (isNaN(raw)) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'No data - using fallback' });\n    return null;\n}\nconst w = Math.abs(raw);\nflow.set('acConsumptionW', w);\n\nconst now   = Date.now();\nconst today = new Date().toDateString();\nif (flow.get('acAccumDay') !== today) {\n    flow.set('acAccumKwh', 0);\n    flow.set('acAccumDay', today);\n}\nconst lastTs = flow.get('acLastTs');\nlet dtSec = lastTs ? (now - lastTs) / 1000 : 0;\nif (dtSec < 0 || dtSec > 120) dtSec = 0;\nflow.set('acLastTs', now);\n\nlet accum = (flow.get('acAccumKwh') || 0) + (w * dtSec) / 3600 / 1000;\n\n// Sanity clamp (v10.1 fix): a house does not consume 100+ kWh/day.\n// Catches any accumulator that ran away because a day-rollover was missed.\nif (accum > 100) {\n    node.warn('acAccumKwh implausible (' + accum.toFixed(1) + ' kWh) - forcing reset');\n    accum = 0;\n}\nflow.set('acAccumKwh', accum);\nnode.status({ fill: 'green', shape: 'dot',\n    text: 'Load: ' + Math.round(w) + 'W | today: ' + accum.toFixed(2) + ' kWh' });\nreturn null;",
         "outputs": 1,
@@ -994,10 +995,10 @@
         ]
     },
     {
-        "id": "b7a0fc26e8a7fab2",
+        "id": "502be93cf86a7791",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "PV power aggregator",
         "func": "// Receives tagged power messages from all 5 MPPTs (msg.slot 1-5).\nconst w = parseFloat(msg.payload) || 0;\nconst s = msg.slot;\nconst arr = flow.get('pvMpptW') || [0, 0, 0, 0, 0];\nif (s >= 1 && s <= 5) arr[s - 1] = w;\nflow.set('pvMpptW', arr);\nconst total = Math.round(arr.reduce((a, b) => a + b, 0));\nflow.set('pvPowerW', total);\nnode.status({ fill: 'yellow', shape: 'dot',\n    text: 'Total: ' + total + 'W | ' + arr.map((v, i) => 'M' + (i + 1) + ':' + Math.round(v)).join(' ') });\nreturn null;",
         "outputs": 1,
@@ -1013,10 +1014,10 @@
         ]
     },
     {
-        "id": "a18d94d5425d9b65",
+        "id": "da34aa15560afc8b",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "PV yield totalizer",
         "func": "// Receives tagged daily-yield messages from all 5 MPPTs (msg.slot 1-5).\n// v10.1 fix: hold last-known-good value on a bad/unavailable reading\n// instead of zeroing that MPPT's contribution (VE.Direct comms blips\n// were silently wiping the whole daily total).\nconst raw = parseFloat(msg.payload);\nconst s = msg.slot;\nconst arr = flow.get('pvMpptYield') || [0, 0, 0, 0, 0];\nif (s >= 1 && s <= 5) {\n    if (!isNaN(raw)) {\n        arr[s - 1] = raw;\n    } else {\n        node.warn('MPPT slot ' + s + ' unavailable - holding last value (' + (arr[s - 1] || 0).toFixed(2) + ' kWh)');\n    }\n}\nflow.set('pvMpptYield', arr);\nconst total = parseFloat(arr.reduce((a, b) => a + b, 0).toFixed(3));\nflow.set('pvAccumKwh', total);\nnode.status({ fill: 'yellow', shape: 'dot',\n    text: 'Total: ' + total.toFixed(2) + ' kWh | ' + arr.map((v, i) => 'M' + (i + 1) + ':' + v.toFixed(1)).join(' ') });\nreturn null;",
         "outputs": 1,
@@ -1032,10 +1033,10 @@
         ]
     },
     {
-        "id": "8b63fbffee2ad3ec",
+        "id": "b91d24df66d75d67",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/1",
         "path": "/Yield/Power",
@@ -1054,15 +1055,15 @@
         "y": 680,
         "wires": [
             [
-                "6f3bb2aba1a511a7"
+                "cb06f1fd68664ca3"
             ]
         ]
     },
     {
-        "id": "6f3bb2aba1a511a7",
+        "id": "cb06f1fd68664ca3",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 1",
         "func": "msg.slot = 1; return msg;",
         "outputs": 1,
@@ -1075,15 +1076,15 @@
         "y": 680,
         "wires": [
             [
-                "b7a0fc26e8a7fab2"
+                "502be93cf86a7791"
             ]
         ]
     },
     {
-        "id": "d4e1e3173b101988",
+        "id": "9f4abcd6b0e2bfd8",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/1",
         "path": "/History/Daily/0/Yield",
@@ -1107,15 +1108,15 @@
         "y": 680,
         "wires": [
             [
-                "9b6bbca32ba6909d"
+                "c41ef2339240d2c1"
             ]
         ]
     },
     {
-        "id": "9b6bbca32ba6909d",
+        "id": "c41ef2339240d2c1",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 1",
         "func": "msg.slot = 1; return msg;",
         "outputs": 1,
@@ -1128,15 +1129,15 @@
         "y": 680,
         "wires": [
             [
-                "a18d94d5425d9b65"
+                "da34aa15560afc8b"
             ]
         ]
     },
     {
-        "id": "08608b910d838e19",
+        "id": "2353f2a4463b42ee",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/2",
         "path": "/Yield/Power",
@@ -1155,15 +1156,15 @@
         "y": 740,
         "wires": [
             [
-                "492fc65a97ae49ac"
+                "b919598dba40f517"
             ]
         ]
     },
     {
-        "id": "492fc65a97ae49ac",
+        "id": "b919598dba40f517",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 2",
         "func": "msg.slot = 2; return msg;",
         "outputs": 1,
@@ -1176,15 +1177,15 @@
         "y": 740,
         "wires": [
             [
-                "b7a0fc26e8a7fab2"
+                "502be93cf86a7791"
             ]
         ]
     },
     {
-        "id": "cd99a1cc1bb8f674",
+        "id": "3df7c909a545f327",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/2",
         "path": "/History/Daily/0/Yield",
@@ -1208,15 +1209,15 @@
         "y": 740,
         "wires": [
             [
-                "fdc224bf9eabd1c0"
+                "cb525280f2828bee"
             ]
         ]
     },
     {
-        "id": "fdc224bf9eabd1c0",
+        "id": "cb525280f2828bee",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 2",
         "func": "msg.slot = 2; return msg;",
         "outputs": 1,
@@ -1229,15 +1230,15 @@
         "y": 740,
         "wires": [
             [
-                "a18d94d5425d9b65"
+                "da34aa15560afc8b"
             ]
         ]
     },
     {
-        "id": "cc75eb8dd60dc3df",
+        "id": "037a10c86d99a45e",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/0",
         "path": "/Yield/Power",
@@ -1256,15 +1257,15 @@
         "y": 800,
         "wires": [
             [
-                "391e666126faaf9c"
+                "d83a93d60262f015"
             ]
         ]
     },
     {
-        "id": "391e666126faaf9c",
+        "id": "d83a93d60262f015",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 3",
         "func": "msg.slot = 3; return msg;",
         "outputs": 1,
@@ -1277,15 +1278,15 @@
         "y": 800,
         "wires": [
             [
-                "b7a0fc26e8a7fab2"
+                "502be93cf86a7791"
             ]
         ]
     },
     {
-        "id": "45e6b7447eaae83b",
+        "id": "f3bc68ee3a14a3e0",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/0",
         "path": "/History/Daily/0/Yield",
@@ -1309,15 +1310,15 @@
         "y": 800,
         "wires": [
             [
-                "e219369962af1ce5"
+                "af325664e5f0bbc2"
             ]
         ]
     },
     {
-        "id": "e219369962af1ce5",
+        "id": "af325664e5f0bbc2",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 3",
         "func": "msg.slot = 3; return msg;",
         "outputs": 1,
@@ -1330,15 +1331,15 @@
         "y": 800,
         "wires": [
             [
-                "a18d94d5425d9b65"
+                "da34aa15560afc8b"
             ]
         ]
     },
     {
-        "id": "2ae8dc369de36c25",
+        "id": "9b5540dc85eb1cf1",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/4",
         "path": "/Yield/Power",
@@ -1357,15 +1358,15 @@
         "y": 860,
         "wires": [
             [
-                "d4094e01cba62b9b"
+                "a5a805856266c3fb"
             ]
         ]
     },
     {
-        "id": "d4094e01cba62b9b",
+        "id": "a5a805856266c3fb",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 4",
         "func": "msg.slot = 4; return msg;",
         "outputs": 1,
@@ -1378,15 +1379,15 @@
         "y": 860,
         "wires": [
             [
-                "b7a0fc26e8a7fab2"
+                "502be93cf86a7791"
             ]
         ]
     },
     {
-        "id": "906c6d8e3bd29eb2",
+        "id": "5d1e8ddb5e601e6d",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/4",
         "path": "/History/Daily/0/Yield",
@@ -1410,15 +1411,15 @@
         "y": 860,
         "wires": [
             [
-                "c02dc1108dc39bb9"
+                "cfb11e8cad206d6f"
             ]
         ]
     },
     {
-        "id": "c02dc1108dc39bb9",
+        "id": "cfb11e8cad206d6f",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 4",
         "func": "msg.slot = 4; return msg;",
         "outputs": 1,
@@ -1431,15 +1432,15 @@
         "y": 860,
         "wires": [
             [
-                "a18d94d5425d9b65"
+                "da34aa15560afc8b"
             ]
         ]
     },
     {
-        "id": "133087591861e002",
+        "id": "86db1fe62a1b192a",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/3",
         "path": "/Yield/Power",
@@ -1458,15 +1459,15 @@
         "y": 920,
         "wires": [
             [
-                "62ba79378fbc04c6"
+                "16e9d537f01f5cab"
             ]
         ]
     },
     {
-        "id": "62ba79378fbc04c6",
+        "id": "16e9d537f01f5cab",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 5",
         "func": "msg.slot = 5; return msg;",
         "outputs": 1,
@@ -1479,15 +1480,15 @@
         "y": 920,
         "wires": [
             [
-                "b7a0fc26e8a7fab2"
+                "502be93cf86a7791"
             ]
         ]
     },
     {
-        "id": "bfc7c117a4b923ce",
+        "id": "c9b495cb03f4b0ef",
         "type": "victron-input-solarcharger",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "outputs": 1,
         "service": "com.victronenergy.solarcharger/3",
         "path": "/History/Daily/0/Yield",
@@ -1511,15 +1512,15 @@
         "y": 920,
         "wires": [
             [
-                "84fa7872c51a6544"
+                "b678fab6bdc7a163"
             ]
         ]
     },
     {
-        "id": "84fa7872c51a6544",
+        "id": "b678fab6bdc7a163",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "60be42488b9d4c60",
+        "z": "f2d3b29112c78fc5",
+        "g": "c9515232d285298b",
         "name": "slot 5",
         "func": "msg.slot = 5; return msg;",
         "outputs": 1,
@@ -1532,15 +1533,15 @@
         "y": 920,
         "wires": [
             [
-                "a18d94d5425d9b65"
+                "da34aa15560afc8b"
             ]
         ]
     },
     {
-        "id": "d6652f67ea7f5a06",
+        "id": "19c0fbe2fb920efb",
         "type": "inject",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Forecast — 15 min",
         "props": [
             {
@@ -1558,15 +1559,15 @@
         "y": 1060,
         "wires": [
             [
-                "2de6fc067cd2a236"
+                "6940d122bdae713f"
             ]
         ]
     },
     {
-        "id": "2de6fc067cd2a236",
+        "id": "6940d122bdae713f",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Time gate (24/7)",
         "func": "// v10.4: was suppressing fetches outside 06:00-21:00 to save API\n// calls, but that meant forecast data was stale/missing overnight -\n// now runs 24/7 so the dashboard always has current forecast data.\nnode.status({ fill: 'green', shape: 'dot', text: 'Passed ' + new Date().toLocaleTimeString() });\nreturn msg;",
         "outputs": 1,
@@ -1579,17 +1580,17 @@
         "y": 1060,
         "wires": [
             [
-                "50d9f79c89753b42"
+                "ab25eba66c419302"
             ]
         ]
     },
     {
-        "id": "50d9f79c89753b42",
+        "id": "ab25eba66c419302",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Build Open-Meteo URL",
-        "func": "// Free, key-less API. timezone=Pacific/Auckland means all returned\n// times (incl. sunrise/sunset) are NZ LOCAL and track DST as long as\n// the Cerbo clock is on Pacific/Auckland - no manual offset needed.\nconst config = flow.get('config') || {};\nconst lat = config.latitude  || -37.2540109;\nconst lon = config.longitude || 175.0050308;\nmsg.url = 'https://api.open-meteo.com/v1/forecast'\n    + '?latitude=' + lat\n    + '&longitude=' + lon\n    + '&hourly=direct_radiation,diffuse_radiation,direct_normal_irradiance'\n    + ',cloudcover,precipitation_probability,weathercode'\n    + '&daily=weathercode,precipitation_sum,precipitation_probability_max,sunrise,sunset'\n    + '&timezone=Pacific%2FAuckland'\n    + '&forecast_days=1';\nmsg.method = 'GET';\nnode.status({ fill: 'blue', shape: 'ring', text: 'Fetching forecast + sun...' });\nreturn msg;",
+        "func": "// Free, key-less API. timezone=Pacific/Auckland means all returned\n// times (incl. sunrise/sunset) are NZ LOCAL and track DST as long as\n// the Cerbo clock is on Pacific/Auckland - no manual offset needed.\n// v16.6: + hourly precipitation (mm) for the weather-impact node\nconst config = flow.get('config') || {};\nconst lat = config.latitude  || -37.2540109;\nconst lon = config.longitude || 175.0050308;\nmsg.url = 'https://api.open-meteo.com/v1/forecast'\n    + '?latitude=' + lat\n    + '&longitude=' + lon\n    + '&hourly=direct_radiation,diffuse_radiation,direct_normal_irradiance'\n    + ',cloudcover,precipitation_probability,precipitation,weathercode'\n    + '&daily=weathercode,precipitation_sum,precipitation_probability_max,sunrise,sunset'\n    + '&timezone=Pacific%2FAuckland'\n    + '&forecast_days=1';\nmsg.method = 'GET';\nnode.status({ fill: 'blue', shape: 'ring', text: 'Fetching forecast + sun...' });\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -1600,15 +1601,15 @@
         "y": 1060,
         "wires": [
             [
-                "24fb3227bdf1c232"
+                "ac73e0efcb252b47"
             ]
         ]
     },
     {
-        "id": "24fb3227bdf1c232",
+        "id": "ac73e0efcb252b47",
         "type": "http request",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Open-Meteo API",
         "method": "GET",
         "ret": "txt",
@@ -1622,15 +1623,36 @@
         "y": 1060,
         "wires": [
             [
-                "14f1cc1d4f0f5d5c"
+                "wx_impact_v166"
             ]
         ]
     },
     {
-        "id": "14f1cc1d4f0f5d5c",
+        "id": "wx_impact_v166",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "name": "Weather impact (rain/storm)",
+        "func": "// v16.6: Rain / thunderstorm impact. Sits between the Open-Meteo API node\n// and the Forecast parser; passes msg through UNCHANGED (payload stays text).\n// Uses the HOURLY weather codes for the remaining daylight hours, so a\n// storm that already passed (or is only overnight) doesn't penalise today.\n// Result -> flow 'weatherImpact', read by Forecast Adjuster.\nlet d;\ntry { d = JSON.parse(msg.payload); } catch (e) { return msg; }   // parser handles the error\nconst h  = d && d.hourly;\nconst dl = d && d.daily;\nif (!h || !h.time || !h.weathercode) return msg;\n\n// Tunables (override with CONFIG.weatherImpact = {...} if you like)\nconst T = Object.assign({\n    rain:  { targetBump: 6,  floorBump: 0 },   // light/moderate rain\n    heavy: { targetBump: 10, floorBump: 3 },   // heavy rain / violent showers\n    storm: { targetBump: 14, floorBump: 5 },   // thunderstorm (codes 95/96/99)\n    probMin: 50,                               // % chance needed to count light rain\n    heavyMm: 4,                                // mm/h counted as heavy\n    rainMm: 0.5                                // mm/h counted as rain\n}, (flow.get('config') || {}).weatherImpact || {});\n\nconst now  = new Date();\nconst nowH = now.getHours() + now.getMinutes() / 60;\nlet sunsetH = 21;\nif (dl && dl.sunset && dl.sunset[0]) {\n    const s = new Date(dl.sunset[0]);\n    sunsetH = s.getHours() + s.getMinutes() / 60;\n}\n\nlet storm = false, heavy = false, rain = false, mm = 0, hrs = 0;\nh.time.forEach((ts, i) => {\n    const t = new Date(ts);\n    if (t.toDateString() !== now.toDateString()) return;\n    const tH = t.getHours();\n    if (tH + 1 <= nowH || tH >= sunsetH) return;          // past hours / after sunset\n    const c = h.weathercode[i];\n    const p = (h.precipitation_probability && h.precipitation_probability[i] != null)\n              ? h.precipitation_probability[i] : 100;\n    const m = (h.precipitation && h.precipitation[i]) || 0;\n    mm += m;\n    let hit = false;\n    if (c >= 95)                                              { storm = true; hit = true; }\n    else if ([65, 67, 82].includes(c) || m >= T.heavyMm)      { heavy = true; hit = true; }\n    else if (([51,53,55,56,57,61,63,66,80,81].includes(c) && p >= T.probMin) || m >= T.rainMm)\n                                                              { rain  = true; hit = true; }\n    if (hit) hrs++;\n});\n\nconst sev   = storm ? 3 : heavy ? 2 : rain ? 1 : 0;\nconst key   = ['none', 'rain', 'heavy', 'storm'][sev];\nconst label = ['Dry', 'Rain', 'Heavy rain', 'Thunderstorm'][sev];\nconst b     = sev ? T[key] : { targetBump: 0, floorBump: 0 };\n\nflow.set('weatherImpact', {\n    severity: sev, label: label,\n    targetBump: b.targetBump, floorBump: b.floorBump,\n    rainMm: Math.round(mm * 10) / 10, hours: hrs,\n    ts: Date.now()\n});\nnode.status({ fill: sev >= 2 ? 'red' : sev === 1 ? 'yellow' : 'green', shape: 'dot',\n    text: label + ' | ' + hrs + 'h | ' + (Math.round(mm * 10) / 10) + 'mm | tgt +' + b.targetBump + ' floor +' + b.floorBump });\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 1120,
+        "wires": [
+            [
+                "ec865749e0ba8175"
+            ]
+        ],
+        "g": "6d4d5c152b181fe8"
+    },
+    {
+        "id": "ec865749e0ba8175",
+        "type": "function",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Forecast parser (POA model)",
         "func": "// Per-array plane-of-array (POA) forecast for the remaining day,\n// weather condition, sunrise/sunset, and a live confidence ratio\n// (actual PV so far vs what the model predicted for the morning).\ntry {\n    const data   = JSON.parse(msg.payload);\n    const hourly = data.hourly;\n    const daily  = data.daily;\n    if (!hourly || !hourly.time) throw new Error('Invalid Open-Meteo response');\n\n    const config = flow.get('config') || {};\n    const now    = new Date();\n    const nowH   = now.getHours() + now.getMinutes() / 60;\n    const endH   = config.freeWindowStartHour || 21;\n\n    const weatherCode = daily && daily.weathercode ? daily.weathercode[0] : 0;\n    const precipSum   = daily && daily.precipitation_sum ? daily.precipitation_sum[0] : 0;\n    const precipProb  = daily && daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : 0;\n\n    // Sunrise/sunset arrive as NZ-local ISO strings (DST already\n    // applied by the API); Date() parses them in the Cerbo's local\n    // zone, which must also be Pacific/Auckland.\n    function timeToDecimal(iso) {\n        if (!iso) return null;\n        const d = new Date(iso);\n        return d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;\n    }\n    const sunriseH = timeToDecimal(daily && daily.sunrise ? daily.sunrise[0] : null);\n    const sunsetH  = timeToDecimal(daily && daily.sunset  ? daily.sunset[0]  : null);\n    flow.set('sunriseH', sunriseH);\n    flow.set('sunsetH',  sunsetH);\n\n    function weatherDescription(code) {\n        if (code === 0)  return { label: 'Clear sky',     icon: 'sunny',   confidence: 1.0 };\n        if (code <= 3)   return { label: 'Partly cloudy', icon: 'cloudy',  confidence: 0.85 };\n        if (code <= 48)  return { label: 'Foggy',         icon: 'foggy',   confidence: 0.6 };\n        if (code <= 67)  return { label: 'Rainy',         icon: 'rainy',   confidence: 0.4 };\n        if (code <= 77)  return { label: 'Snowy',         icon: 'snowy',   confidence: 0.3 };\n        if (code <= 82)  return { label: 'Showers',       icon: 'showers', confidence: 0.5 };\n        if (code <= 99)  return { label: 'Thunderstorm',  icon: 'storm',   confidence: 0.2 };\n        return                  { label: 'Unknown',       icon: 'unknown', confidence: 0.7 };\n    }\n    const weather = weatherDescription(weatherCode);\n\n    // Average cloud cover for the remaining daylight hours\n    let cloudSum = 0, cloudCount = 0;\n    (hourly.cloudcover || []).forEach((cc, i) => {\n        const t  = new Date(hourly.time[i]);\n        const tH = t.getHours() + t.getMinutes() / 60;\n        if (t.toDateString() !== now.toDateString()) return;\n        if (tH < nowH || tH >= endH) return;\n        cloudSum += (cc || 0);\n        cloudCount++;\n    });\n    const avgCloudPct = cloudCount ? Math.round(cloudSum / cloudCount) : 0;\n\n    // -- POA transposition per array (geometry from CONFIG) -------\n    const arrays = config.solarArrays || [\n        { name: 'ENE',    azimuth:  57, tilt: 23, capacityKw: 6.09 },\n        { name: 'NNW/NW', azimuth: 326, tilt: 23, capacityKw: 7.83 },\n        { name: 'WSW',    azimuth: 237, tilt: 23, capacityKw: 5.52 },\n    ];\n    const systemEfficiency = config.systemEfficiency || 0.82;\n    const latRad = (config.latitude || -37.254) * Math.PI / 180;\n\n    function toRad(d) { return d * Math.PI / 180; }\n    const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);\n    const decl = toRad(23.45 * Math.sin(toRad(360 / 365 * (dayOfYear - 81))));\n\n    function sinElev(h) {\n        const ha = toRad((h - 12) * 15);\n        return Math.sin(latRad) * Math.sin(decl) + Math.cos(latRad) * Math.cos(decl) * Math.cos(ha);\n    }\n    function solAz(h) {\n        const se = sinElev(h);\n        if (se <= 0) return 0;\n        const cosAz = (Math.sin(decl) - se * Math.sin(latRad)) / (Math.sqrt(1 - se * se) * Math.cos(latRad));\n        let az = Math.acos(Math.max(-1, Math.min(1, cosAz)));\n        if (h > 12) az = 2 * Math.PI - az;\n        return az;\n    }\n    function tiltFactor(h, azDeg, tiltDeg) {\n        const se = sinElev(h);\n        if (se <= 0) return 0;\n        const cosAOI = se * Math.cos(toRad(tiltDeg))\n            + Math.sqrt(1 - se * se) * Math.sin(toRad(tiltDeg)) * Math.cos(solAz(h) - toRad(azDeg));\n        return Math.max(0, cosAOI);\n    }\n    function poaKwh(arr, fromH, toH) {\n        let sum = 0;\n        hourly.time.forEach((timeStr, i) => {\n            const t  = new Date(timeStr);\n            const tH = t.getHours() + t.getMinutes() / 60;\n            if (t.toDateString() !== now.toDateString()) return;\n            // v16 fix: weight by the part of this hour inside [fromH, toH).\n            // v15 counted the in-progress hour as fully \"morning\" and not at\n            // all \"remaining\", so confidence (actual/modelled) dipped after\n            // every refresh past :00 and the remaining forecast was short.\n            const overlap = Math.min(tH + 1, toH) - Math.max(tH, fromH);\n            if (overlap <= 0) return;\n            const ghi     = Math.max(0, hourly.direct_radiation[i] || 0);\n            const diffuse = Math.max(0, hourly.diffuse_radiation[i] || 0);\n            const dni     = Math.max(0, hourly.direct_normal_irradiance[i] || 0);\n            const tf      = tiltFactor(tH + 0.5, arr.azimuth, arr.tilt);\n            const poa     = dni * tf + diffuse * (1 + Math.cos(toRad(arr.tilt))) / 2\n                          + ghi * 0.2 * (1 - Math.cos(toRad(arr.tilt))) / 2;\n            sum += (poa / 1000) * arr.capacityKw * systemEfficiency * overlap;\n        });\n        return sum;\n    }\n\n    let totalKwh = 0, morningForecast = 0;\n    const arrayResults = [];\n    arrays.forEach(arr => {\n        const remaining = poaKwh(arr, nowH, endH);\n        arrayResults.push({ name: arr.name, kwh: parseFloat(remaining.toFixed(2)) });\n        totalKwh        += remaining;\n        morningForecast += poaKwh(arr, 6, nowH);\n    });\n    totalKwh = parseFloat(totalKwh.toFixed(2));\n\n    // v16: hourly whole-array PV profile for today (average kW per hour,\n    // raw - confidence is applied in the Forecast Adjuster). Same POA\n    // model as poaKwh() above, one hour at a time.\n    const hourlyPv = [];\n    hourly.time.forEach((timeStr, i) => {\n        const t = new Date(timeStr);\n        if (t.toDateString() !== now.toDateString()) return;\n        const tH      = t.getHours();\n        const ghi     = Math.max(0, hourly.direct_radiation[i] || 0);\n        const diffuse = Math.max(0, hourly.diffuse_radiation[i] || 0);\n        const dni     = Math.max(0, hourly.direct_normal_irradiance[i] || 0);\n        let kw = 0;\n        arrays.forEach(arr => {\n            const tf  = tiltFactor(tH + 0.5, arr.azimuth, arr.tilt);\n            const poa = dni * tf + diffuse * (1 + Math.cos(toRad(arr.tilt))) / 2\n                      + ghi * 0.2 * (1 - Math.cos(toRad(arr.tilt))) / 2;\n            kw += (poa / 1000) * arr.capacityKw * systemEfficiency;\n        });\n        hourlyPv.push({ h: tH, kw: parseFloat(kw.toFixed(2)) });\n    });\n    flow.set('forecastHourly', hourlyPv);\n\n    // -- Confidence: actual PV so far vs modelled morning ---------\n    const pvAccumKwh = flow.get('pvAccumKwh') || 0;\n    let confidenceRatio = 1.0;\n    let confidenceLabel = 'Insufficient data';\n    if (nowH >= 9 && morningForecast > 0.5) {\n        confidenceRatio = Math.min(1.5, pvAccumKwh / morningForecast);\n        if      (confidenceRatio >= 0.9) confidenceLabel = 'On track';\n        else if (confidenceRatio >= 0.7) confidenceLabel = 'Slightly below forecast';\n        else if (confidenceRatio >= 0.5) confidenceLabel = 'Well below forecast';\n        else                             confidenceLabel = 'Far below - likely overcast';\n    }\n    const adjustedForecastKwh = nowH >= 9\n        ? parseFloat((totalKwh * Math.min(1.0, confidenceRatio)).toFixed(2))\n        : totalKwh;\n\n    flow.set('forecastKwh', adjustedForecastKwh);\n    flow.set('forecastRaw', totalKwh);\n    flow.set('forecastArrays', arrayResults);\n    flow.set('forecastFetchedAt', now.toISOString());\n    flow.set('forecastValid', true);\n    flow.set('weather', {\n        code: weatherCode, label: weather.label, icon: weather.icon,\n        cloudPct: avgCloudPct, precipProb: precipProb, precipSumMm: precipSum,\n        confidence: weather.confidence, sunriseH: sunriseH, sunsetH: sunsetH,\n    });\n    flow.set('forecastConfidence', {\n        ratio: parseFloat(confidenceRatio.toFixed(2)),\n        label: confidenceLabel,\n        actualKwh: parseFloat(pvAccumKwh.toFixed(2)),\n        predictedKwh: parseFloat(morningForecast.toFixed(2)),\n        adjustedKwh: adjustedForecastKwh,\n    });\n\n    function hhmm(h) {\n        if (h === null || h === undefined) return '?';\n        return Math.floor(h) + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0');\n    }\n    node.status({ fill: 'green', shape: 'dot',\n        text: weather.label + ' ' + avgCloudPct + '% cloud | '\n            + adjustedForecastKwh.toFixed(1) + 'kWh | rise:' + hhmm(sunriseH) + ' set:' + hhmm(sunsetH) });\n\n    msg.forecastKwh    = adjustedForecastKwh;\n    msg.forecastArrays = arrayResults;\n    return msg;\n\n} catch (e) {\n    flow.set('forecastValid', false);\n    node.status({ fill: 'red', shape: 'dot', text: 'Forecast error: ' + e.message });\n    return null;\n}",
         "outputs": 1,
@@ -1643,16 +1665,16 @@
         "y": 1060,
         "wires": [
             [
-                "f920923f991c50c0",
-                "3bd03a7eaadac8c2"
+                "19eb161beef752e7",
+                "e1b20cac37e45bf3"
             ]
         ]
     },
     {
-        "id": "f920923f991c50c0",
+        "id": "19eb161beef752e7",
         "type": "debug",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Forecast result",
         "active": true,
         "tosidebar": true,
@@ -1667,10 +1689,10 @@
         "wires": []
     },
     {
-        "id": "3bd03a7eaadac8c2",
+        "id": "e1b20cac37e45bf3",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Sun times → JSON",
         "func": "const sunriseH  = flow.get('sunriseH');\nconst sunsetH   = flow.get('sunsetH');\nconst cutoff    = flow.get('weekendExportCutoff');\nconst cutoffSrc = flow.get('weekendCutoffSource') || 'unknown';\nfunction decimalToHHMM(h) {\n    if (h === null || h === undefined) return null;\n    const hh = Math.floor(h), mm = Math.round((h - hh) * 60);\n    return hh.toString().padStart(2, '0') + ':' + mm.toString().padStart(2, '0');\n}\nmsg.topic   = 'victron/ess/sun';\nmsg.payload = JSON.stringify({\n    sunriseHHMM:         decimalToHHMM(sunriseH),\n    sunsetHHMM:          decimalToHHMM(sunsetH),\n    sunriseDecimal:      sunriseH != null ? parseFloat(sunriseH.toFixed(3)) : null,\n    sunsetDecimal:       sunsetH  != null ? parseFloat(sunsetH.toFixed(3))  : null,\n    weekendCutoffHHMM:   decimalToHHMM(cutoff),\n    weekendCutoffSource: cutoffSrc,\n    timestamp:           new Date().toISOString()\n});\nmsg.retain = true;\nmsg.qos    = 1;\nnode.status({ fill: 'yellow', shape: 'dot',\n    text: 'rise:' + (decimalToHHMM(sunriseH) || '?') + ' set:' + (decimalToHHMM(sunsetH) || '?')\n        + ' cutoff:' + (decimalToHHMM(cutoff) || '?') + ' (' + cutoffSrc + ')' });\nreturn msg;",
         "outputs": 1,
@@ -1683,15 +1705,15 @@
         "y": 1100,
         "wires": [
             [
-                "664e99ab9a22895a"
+                "b0a29679301f1436"
             ]
         ]
     },
     {
-        "id": "664e99ab9a22895a",
+        "id": "b0a29679301f1436",
         "type": "mqtt out",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "→ victron/ess/sun",
         "topic": "victron/ess/sun",
         "qos": "1",
@@ -1707,30 +1729,31 @@
         "wires": []
     },
     {
-        "id": "85abeee8c1bd3999",
+        "id": "9d9124ae794f39e4",
         "type": "catch",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Forecast error handler",
         "scope": [
-            "50d9f79c89753b42",
-            "24fb3227bdf1c232",
-            "14f1cc1d4f0f5d5c"
+            "ab25eba66c419302",
+            "ac73e0efcb252b47",
+            "ec865749e0ba8175",
+            "wx_impact_v166"
         ],
         "uncaught": false,
         "x": 460,
         "y": 1160,
         "wires": [
             [
-                "82dbf0be144297d3"
+                "0241742c7b71f7f4"
             ]
         ]
     },
     {
-        "id": "82dbf0be144297d3",
+        "id": "0241742c7b71f7f4",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "7cf25c0f6e7ef6db",
+        "z": "f2d3b29112c78fc5",
+        "g": "6d4d5c152b181fe8",
         "name": "Log forecast error",
         "func": "// Mark forecast invalid so the controller falls back to the base\n// 21:00 target rather than acting on stale numbers.\nflow.set('forecastValid', false);\nconst errMsg = msg.error ? msg.error.message : 'Unknown error';\nnode.error('Forecast error: ' + errMsg);\nnode.status({ fill: 'red', shape: 'dot', text: 'Error: ' + errMsg.substring(0, 40) });\nreturn null;",
         "outputs": 1,
@@ -1746,10 +1769,10 @@
         ]
     },
     {
-        "id": "a241dd9cd9fb3030",
+        "id": "d7c1933b9ae4649a",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "66cbde9f2ea33ee7",
+        "z": "f2d3b29112c78fc5",
+        "g": "8ac6ee2588c2472d",
         "name": "Day-rollover watchdog",
         "func": "// Independent day-rollover safety net (v10.1 addition).\n// Runs every 60s off the Tick timer -- NOT dependent on grid/AC/PV\n// messages actually arriving -- so a dead sensor feed spanning\n// midnight can never leave an accumulator un-reset.\nconst todayStr = new Date().toDateString();\n\nif (flow.get('gridEnergyDay') !== todayStr) {\n    flow.set('gridImportKwh', 0);\n    flow.set('gridExportKwh', 0);\n    flow.set('gridEnergyDay', todayStr);\n    node.warn('Forced grid accumulator reset (day-rollover watchdog)');\n}\nif (flow.get('acAccumDay') !== todayStr) {\n    flow.set('acAccumKwh', 0);\n    flow.set('acAccumDay', todayStr);\n    node.warn('Forced AC accumulator reset (day-rollover watchdog)');\n}\nif (flow.get('pvAccumDay') !== todayStr) {\n    flow.set('pvMpptYield', [0, 0, 0, 0, 0]);\n    flow.set('pvAccumKwh', 0);\n    flow.set('pvAccumDay', todayStr);\n    node.warn('Forced PV accumulator reset (day-rollover watchdog)');\n}\n// v10.9 safety net: catches the case where Phase C never engages at\n// all on a given night (e.g. a fault, or manual override staying on\n// through the free window) - the primary reset in the Free-charge\n// accumulator node only fires on the first Phase C message, so if\n// that never happens, this is the only thing that clears yesterday's\n// total before a new day starts.\nif (flow.get('freeChargeResetDay') !== todayStr) {\n    flow.set('freeChargeKwh', 0);\n    flow.set('freeChargeResetDay', todayStr);\n    node.warn('Forced free-charge accumulator reset (day-rollover watchdog)');\n}\n\n// Belt-and-braces sanity clamp, independent of the one in the AC node.\nif ((flow.get('acAccumKwh') || 0) > 100) {\n    node.warn('acAccumKwh implausible (' + flow.get('acAccumKwh').toFixed(1) + ' kWh) - forcing reset');\n    flow.set('acAccumKwh', 0);\n}\n\nnode.status({ fill: 'grey', shape: 'dot', text: 'watch: ' + todayStr });\nreturn null;",
         "outputs": 1,
@@ -1765,10 +1788,10 @@
         ]
     },
     {
-        "id": "eb9230f364e39ae3",
+        "id": "5893a82145d19d6f",
         "type": "debug",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "Grid Import Today (kWh)",
         "active": true,
         "tosidebar": true,
@@ -1783,10 +1806,10 @@
         "wires": []
     },
     {
-        "id": "9b1486bc0cb90cf8",
+        "id": "c49e79f3f3420c75",
         "type": "debug",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "Grid Export Today (kWh)",
         "active": true,
         "tosidebar": true,
@@ -1801,10 +1824,10 @@
         "wires": []
     },
     {
-        "id": "3b3c914776a2c559",
+        "id": "55a2f16d52b91701",
         "type": "victron-input-battery",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "outputs": 1,
         "service": "com.victronenergy.battery/512",
         "path": "/Dc/0/Power",
@@ -1822,15 +1845,15 @@
         "y": 520,
         "wires": [
             [
-                "7cb37771c3cd4c5d"
+                "5764cd093e877b3c"
             ]
         ]
     },
     {
-        "id": "7cb37771c3cd4c5d",
+        "id": "5764cd093e877b3c",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "570daa6e36729840",
+        "z": "f2d3b29112c78fc5",
+        "g": "6a9791fa52853577",
         "name": "PV/Battery routing calculator",
         "func": "// v10.8: PV / battery / grid routing breakdown - live replacement for\n// the third-party VRM integration's known-unreliable battery-flow\n// figures. NOT a direct hardware measurement (Victron doesn't expose\n// this exact breakdown on the wire) - reconstructed from four live\n// power readings using the same priority-order logic real Victron ESS\n// systems use internally:\n//   1. PV serves the load first\n//   2. Leftover PV charges the battery\n//   3. Leftover PV after that exports to grid\n//   4. If PV can't cover the load, battery discharges to cover it\n//   5. If battery can't cover it either, grid imports the rest\n//   6. If battery is discharging MORE than the load needs, the extra\n//      exports to grid (rare, e.g. deliberate battery-export mode)\n//\n// IMPORTANT: verify /Dc/0/Power's sign convention on your system before\n// trusting this - this assumes POSITIVE = charging, NEGATIVE =\n// discharging (Victron's usual convention). If the numbers come out\n// backwards (e.g. \"Battery to Consumers\" only shows values while your\n// battery SoC is climbing), the sign is flipped - negate battPowerW\n// at the top of this function.\n\nconst w = parseFloat(msg.payload);\nif (isNaN(w)) { node.status({fill:'grey',shape:'ring',text:'No battery power data'}); return null; }\nflow.set('battPowerW', w);\n\nconst pvW    = flow.get('pvPowerW') || 0;\nconst gridW  = flow.get('gridPowerW') || 0;       // +import / -export\nconst loadW  = flow.get('acConsumptionW') || 0;\nconst battW  = w;                                  // +charge / -discharge (verify!)\n\n// Step 1-3: PV allocation\nconst pvToConsumersW = Math.min(pvW, Math.max(loadW, 0));\nlet remainingPvW      = Math.max(pvW - pvToConsumersW, 0);\nlet remainingLoadW    = Math.max(loadW - pvToConsumersW, 0);\n\nconst pvToBatteryW = battW > 0 ? Math.min(remainingPvW, battW) : 0;\nremainingPvW -= pvToBatteryW;\n// whatever PV is left after load+battery would be exporting - but we\n// use the REAL metered grid export for that figure instead (more\n// accurate than this reconstruction), computed further down.\n\n// Step 4-6: battery covering load, and any surplus battery export\nconst battToConsumersW = battW < 0 ? Math.min(remainingLoadW, -battW) : 0;\nremainingLoadW -= battToConsumersW;\nconst battSurplusW = battW < 0 ? Math.max(-battW - battToConsumersW, 0) : 0;\n\n// Total metered export (from the existing, hardware-accurate grid\n// integrator) = pvToGrid + battToGrid combined. Attribute the surplus\n// battery discharge (if any) to battToGrid, and give PV the remainder -\n// this keeps the headline export number tied to the real meter instead\n// of this reconstruction.\nconst totalExportW = gridW < 0 ? -gridW : 0;\nconst battToGridW  = Math.min(battSurplusW, totalExportW);\nconst pvToGridW     = Math.max(totalExportW - battToGridW, 0);\n\nflow.set('routing_pvToConsumersW', pvToConsumersW);\nflow.set('routing_pvToBatteryW', pvToBatteryW);\nflow.set('routing_pvToGridW', pvToGridW);\nflow.set('routing_battToConsumersW', battToConsumersW);\nflow.set('routing_battToGridW', battToGridW);\n\n// ── Daily kWh accumulation (day-rollover-safe, mirrors the watchdog) ──\nconst now = Date.now();\nconst today = new Date().toDateString();\nif (flow.get('routingDay') !== today) {\n    flow.set('routing_pvToConsumersKwh', 0);\n    flow.set('routing_pvToBatteryKwh', 0);\n    flow.set('routing_pvToGridKwh', 0);\n    flow.set('routing_battToConsumersKwh', 0);\n    flow.set('routing_battToGridKwh', 0);\n    flow.set('routingDay', today);\n}\nconst lastTs = flow.get('routingLastTs');\nlet dtSec = lastTs ? (now - lastTs) / 1000 : 0;\nif (dtSec < 0 || dtSec > 120) dtSec = 0;\nflow.set('routingLastTs', now);\n\nconst toKwh = (pw) => (pw * dtSec) / 3600 / 1000;\nflow.set('routing_pvToConsumersKwh', (flow.get('routing_pvToConsumersKwh') || 0) + toKwh(pvToConsumersW));\nflow.set('routing_pvToBatteryKwh', (flow.get('routing_pvToBatteryKwh') || 0) + toKwh(pvToBatteryW));\nflow.set('routing_pvToGridKwh', (flow.get('routing_pvToGridKwh') || 0) + toKwh(pvToGridW));\nflow.set('routing_battToConsumersKwh', (flow.get('routing_battToConsumersKwh') || 0) + toKwh(battToConsumersW));\nflow.set('routing_battToGridKwh', (flow.get('routing_battToGridKwh') || 0) + toKwh(battToGridW));\n\nnode.status({fill:'yellow', shape:'dot',\n    text: 'PV\\u2192C:' + Math.round(pvToConsumersW) + 'W PV\\u2192B:' + Math.round(pvToBatteryW)\n        + 'W B\\u2192C:' + Math.round(battToConsumersW) + 'W'});\nreturn null;",
         "outputs": 1,
@@ -1846,10 +1869,10 @@
         ]
     },
     {
-        "id": "dda4085d7be0584d",
+        "id": "75d4e615cd56cbc3",
         "type": "function",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "Routing snapshot",
         "func": "// Publishes the routing breakdown every 60s alongside the main state.\nmsg.topic = 'victron/ess/routing';\nmsg.payload = JSON.stringify({\n    pvToConsumersKwh:   +(flow.get('routing_pvToConsumersKwh') || 0).toFixed(2),\n    pvToBatteryKwh:     +(flow.get('routing_pvToBatteryKwh') || 0).toFixed(2),\n    pvToGridKwh:        +(flow.get('routing_pvToGridKwh') || 0).toFixed(2),\n    battToConsumersKwh: +(flow.get('routing_battToConsumersKwh') || 0).toFixed(2),\n    battToGridKwh:      +(flow.get('routing_battToGridKwh') || 0).toFixed(2),\n});\nmsg.retain = false;\nmsg.qos = 0;\nnode.status({fill:'blue', shape:'dot', text:'published'});\nreturn msg;",
         "outputs": 1,
@@ -1862,15 +1885,15 @@
         "y": 160,
         "wires": [
             [
-                "e732d07430482215"
+                "8b319957e45bf7e9"
             ]
         ]
     },
     {
-        "id": "e732d07430482215",
+        "id": "8b319957e45bf7e9",
         "type": "mqtt out",
-        "z": "c7500b69ae0a5e29",
-        "g": "a3f1782f5a972f94",
+        "z": "f2d3b29112c78fc5",
+        "g": "8d192930a27de8a5",
         "name": "→ victron/ess/routing",
         "topic": "",
         "qos": "",
@@ -1917,7 +1940,7 @@
         "sessionExpiry": ""
     },
     {
-        "id": "01691d18685caf28",
+        "id": "5988ecb174965689",
         "type": "global-config",
         "env": [],
         "modules": {
