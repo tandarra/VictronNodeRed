@@ -2,6 +2,16 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.8 - 2026-11-06
+**Rain / thunderstorm now HOLD the daytime export instead of changing the targets**
+- Design change after v16.6/v16.7: the existing 19:00 (65% checkpoint) and 20:00 (21:00 target) evening shed already brings SoC down, so the weather no longer touches the 21:00 target or the daytime floor. Both bumps are removed and `Forecast Adjuster` is back to its original logic with the 43% absolute minimum (`forecastMinTarget` 43). The target is 43% in every condition.
+- New behaviour: every forecast refresh (15 min) the `Weather impact` node scores the weather from now until `CONFIG.weatherImpact.holdUntilH` (19:00). While it sees rain, heavy rain or a thunderstorm, `ESS Controller` caps the export setpoint: rain `-2000 W` (slow), heavy rain and thunderstorm `-150 W` (halt) - `weatherImpact.exportCapW`. The battery is preserved for the afternoon and dinner.
+- The hold also switches off the big-day latch (-9000 W) and the PV full-export override while it applies. It only touches EXPORT / NORMAL / PROTECT; FREECHARGE, DYNAMIC (the 19:00 / 20:00 shed) and FAULT are never limited. At 19:00 the hold ends and the evening shed takes over. It lifts by itself when the forecast clears, and is ignored if the weather data is older than 3 h (e.g. DNS failure).
+- Weather after 19:00 is ignored (the shed owns that period). Detection uses the HOURLY weather codes, precipitation (mm) and probability, so a storm that has already passed does not trigger it.
+- Removed from v16.7: the 5-minute latch release (`pvBigDayStormLowPvMin`), since the hold covers it and resumes the latch automatically when the weather clears.
+- `State publisher`: `state.weatherImpact` (severity 0-3) and `state.weatherHold` (`{label, capW}` or false). Node status shows `WX HOLD <label> cap <W>`.
+- Tested offline: dry / no data unchanged (-9500), rain -> -2000, heavy rain and thunderstorm -> -150, big-day latch overridden while storm is forecast but back to -9000 with no weather, hold on at 18:59 and released at 19:00, DYNAMIC (19:30, 20:30) and FREECHARGE untouched, stale weather ignored, 21:00 target 43% at every forecast size.
+
 ## v16.7 - 2026-11-06
 **21:00 target never below 43%, and the big-day export stops quickly when a storm arrives**
 - Problem 1: `forecastMinTarget` was 32, so a high forecast could pull the 21:00 target below the 43% base. 43% is the absolute bottom in any condition. `CONFIG.forecastMinTarget` is now 43 (and the Forecast Adjuster fallback), so the forecast can no longer lower the target; weather only raises it: dry 43, rain 49, heavy rain 53, thunderstorm 57.

@@ -21,7 +21,7 @@ A 60 s tick runs: phase logic, forecast adjuster (Open-Meteo, per-array model), 
 
 - **Forecast-driven export and overnight charging** on cheap/free power.
 - **Big solar day export (v16.4):** the first time PV passes 8 kW on a big forecast day the day is latched and the setpoint goes to -9000 W, so the battery empties into the grid while the MPPTs run flat out. Stops below 40 % SoC (resumes at 43 %), at sunset minus 3 h (16:30 fallback), or if PV stays under 3 kW for 45 min (bust day). Never overrides FAULT, free charge, stale SoC or the pre-08:00 clamp.
-- **Rain and thunderstorm response (v16.6/v16.7):** hourly weather codes for the remaining daylight raise the weekday 21:00 target (+6 / +10 / +14, never below 43%) and the daytime floor (+0 / +3 / +5). Heavy rain or a thunderstorm also ends the big-day export latch after 5 min of low PV. Tunable in `CONFIG.weatherImpact` and `pvBigDayStormLowPvMin`.
+- **Weather export hold (v16.8):** when the forecast (refreshed every 15 min) shows rain before 19:00 the daytime export is slowed (-2000 W); heavy rain or a thunderstorm halts it (-150 W) and also stops the big-day latch, so the battery lasts the afternoon and dinner. At 19:00 the existing evening shed takes over and brings SoC down to the 21:00 target (43% minimum). Tunable in `CONFIG.weatherImpact`.
 - **Daily energy counters** (grid import/export, AC load) survive a redeploy (v16.5).
 
 ![Cerbo GX](docs/hero-cerbo.png)
@@ -37,6 +37,7 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 
 | Version | Change |
 |---|---|
+| v16.8 | Rain / thunderstorm forecast holds daytime export until the 19:00 evening shed (supersedes v16.6 bumps and v16.7 latch release) |
 | v16.7 | 21:00 target never below 43%; big-day export stops within 5 min when a storm collapses PV |
 | v16.6 | Rain / thunderstorm raise the 21:00 target and daytime floor |
 | v16.5 | Redeploy no longer wipes the daily energy counters |
