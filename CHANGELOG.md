@@ -2,6 +2,12 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.10 - 2026-11-09
+**Minimum SoC lowered from 20% to 15%**
+- `CONFIG.minSocNormal` 20 -> 15. This is the ESS "Minimum SOC" the controller writes to the Cerbo in every mode except FREECHARGE (which still writes 100%). Below this SoC the Victron ESS stops discharging and the house imports from the grid, so the battery now carries the house 5 points (about 1.4 kWh of the 28.68 kWh pack) further before importing.
+- Same value feeds the Trajectory Engine and Forecast Adjuster floors and the `Battery time calc` "to X%" estimate, so those now count down to 15% too. The `|| 20` fallbacks in those nodes are now `|| 15`.
+- Unchanged: daytime floors, big-day tiers (25 / 30%), the weather hold's 60% export floor, the 19:00 / 20:00 shed and the 43% 21:00 target.
+
 ## v16.9 - 2026-11-06
 **No exporting below 60% SoC while rain / thunderstorm is forecast**
 - While the weather hold applies (rain, heavy rain or thunderstorm forecast before 19:00) the battery is no longer exported below `weatherImpact.minSocPct` (60%): at or below 60% the setpoint goes to -150 W, and export only resumes once SoC climbs back to `resumeSocPct` (62%), so the setpoint doesn't flap around the line. This matters on days when the dynamic floor is low (e.g. big forecast days, floor 25-35%), so rain/storm can no longer pull the pack under 60% when PV may not refill it for the evening.

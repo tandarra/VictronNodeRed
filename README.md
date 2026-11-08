@@ -37,6 +37,7 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 
 | Version | Change |
 |---|---|
+| v16.10 | Minimum SoC 20% -> 15% |
 | v16.9 | Weather hold also stops export at 60% SoC (resumes at 62%) |
 | v16.8 | Rain / thunderstorm forecast holds daytime export until the 19:00 evening shed (supersedes v16.6 bumps and v16.7 latch release) |
 | v16.7 | 21:00 target never below 43%; big-day export stops within 5 min when a storm collapses PV |
