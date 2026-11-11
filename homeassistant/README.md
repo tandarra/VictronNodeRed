@@ -39,7 +39,7 @@ Pick one mode, first match wins:
 station's rain rate, rain today and its own last-report time to `victron/ess/station` (retained) every 5 minutes.
 The Node-RED flow uses it for the rain/thunderstorm export hold:
 - Station reported within the last 120 min: its observed rain **replaces the forecast**. No rain there, no cap; raining
-  (>= 0.1 mm/h) = slow export (-2000 W); >= 4 mm/h = halt (-150 W); the hold stays 30 min after rain was last seen.
+  (>= 0.2 mm/h) = slow export (-2000 W); >= 4 mm/h = halt (-150 W); the hold stays 30 min after rain was last seen.
 - Station older than 120 min, unavailable, or no message: the Open-Meteo forecast is used instead (needs >= 60 % chance).
 - Tunables: `CONFIG.weatherImpact.station` (`enabled`, `maxAgeMin`, `overridesForecast`, `rainMmH`, `heavyMmH`, `holdAfterRainMin`).
 - The hold is paused whenever SoC >= 90 % (re-engages at 85 %) and never lets export take SoC below 60 %.

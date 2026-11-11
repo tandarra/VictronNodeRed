@@ -37,6 +37,7 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 
 | Version | Change |
 |---|---|
+| v16.13 | Observed rain threshold 0.2 mm/h |
 | v16.12 | Observed rain at the Moyle Street station drives the weather hold (forecast fallback after 120 min) |
 | v16.11 | Weather hold ignores unlikely rain (<60% chance) and pauses while SoC >= 90% |
 | v16.10 | Minimum SoC 20% -> 15% |

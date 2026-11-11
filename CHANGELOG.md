@@ -2,6 +2,11 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.13 - 2026-11-11
+**Observed rain threshold 0.1 -> 0.2 mm/h**
+- `CONFIG.weatherImpact.station.rainMmH` is now 0.2 (was 0.1), so a reading of 0.1 mm/h no longer counts as raining. 0.2 mm is also one tip of a typical tipping-bucket gauge, so this leaves a margin for noise. Heavy (4 mm/h), the 30 min linger and the rest are unchanged. Fallbacks in `ESS Controller` and `Station rain (Moyle St)` updated to match.
+- Tested offline: 0.1 and 0.15 mm/h give no cap, 0.2 mm/h gives the rain cap; the station node only records rain at >= 0.2 mm/h (or a rising day total).
+
 ## v16.12 - 2026-11-11
 **Observed rain at the Moyle Street station now drives the weather export hold**
 - When the Moyle Street station (Weather Underground IPOKEN24, under 1 km away) has reported within the last 120 min, its OBSERVED rain is used for the hold instead of the Open-Meteo forecast: no rain there = no cap (even if the forecast says rain or a thunderstorm), raining (>= 0.1 mm/h) = -2000 W, heavy (>= 4 mm/h) = -150 W, and the hold lingers 30 min after rain was last seen (rate, or today's total rising). If the station is older than 120 min, unavailable, or no message has arrived, the forecast is used exactly as in v16.11.
