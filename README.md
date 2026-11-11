@@ -37,6 +37,7 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 
 | Version | Change |
 |---|---|
+| v16.12 | Observed rain at the Moyle Street station drives the weather hold (forecast fallback after 120 min) |
 | v16.11 | Weather hold ignores unlikely rain (<60% chance) and pauses while SoC >= 90% |
 | v16.10 | Minimum SoC 20% -> 15% |
 | v16.9 | Weather hold also stops export at 60% SoC (resumes at 62%) |

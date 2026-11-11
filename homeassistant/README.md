@@ -34,6 +34,17 @@ Pick one mode, first match wins:
 6. `daytime` end condition: `now() < pool_day_cutoff or late_ok`. Status sensor uses the same rule.
 7. New template binary sensor `Pool PV below 2 kW` (`delay_on: 00:02:00`, state `sensor.ess_pv_power < 2000`).
 
+## Observed rain for the ESS weather hold (v16.12)
+`ess_station_rain.yaml` (put it in `config/packages/` next to `weather_station_ipoken24.yaml`) publishes the Moyle Street
+station's rain rate, rain today and its own last-report time to `victron/ess/station` (retained) every 5 minutes.
+The Node-RED flow uses it for the rain/thunderstorm export hold:
+- Station reported within the last 120 min: its observed rain **replaces the forecast**. No rain there, no cap; raining
+  (>= 0.1 mm/h) = slow export (-2000 W); >= 4 mm/h = halt (-150 W); the hold stays 30 min after rain was last seen.
+- Station older than 120 min, unavailable, or no message: the Open-Meteo forecast is used instead (needs >= 60 % chance).
+- Tunables: `CONFIG.weatherImpact.station` (`enabled`, `maxAgeMin`, `overridesForecast`, `rainMmH`, `heavyMmH`, `holdAfterRainMin`).
+- The hold is paused whenever SoC >= 90 % (re-engages at 85 %) and never lets export take SoC below 60 %.
+`victron/ess/state` carries `stationRain` and `weatherHold` so both can be shown on a card.
+
 ## Related Node-RED fields (v16.4+)
 `victron/ess/state` also carries `pv.surplusExport` (big-day export active) and `pv.bigSolarDayArmed` (day latched).
 They are not yet wired to HA sensors.

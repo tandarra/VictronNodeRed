@@ -1,0 +1,44 @@
+# Publishes the OBSERVED rain from the Moyle Street station (Weather Underground IPOKEN24,
+# under 1 km away) to the Node-RED ESS controller. Put this file in config/packages/ next to
+# weather_station_ipoken24.yaml (it uses the sensors that package creates), then restart or
+# reload automations.
+#
+# Topic: victron/ess/station (retained). Payload:
+#   {"rate": mm/h, "today": mm, "obs_ts": epoch seconds of the STATION'S OWN last report,
+#    "ts": epoch seconds this was published}
+#
+# Node-RED (v16.12+) trusts it only while obs_ts is newer than 120 min. If the station or the
+# API goes offline the sensors become unavailable, nothing is published, obs_ts ages out and
+# the controller falls back to the Open-Meteo forecast by itself. While the station is fresh its
+# rain replaces the forecast for the daytime export hold: no rain there = no cap.
+automation:
+  - id: ess_station_rain_publish
+    alias: "ESS - publish Moyle Street rain to Node-RED"
+    description: "Sends observed rain rate / today / station report time to victron/ess/station."
+    mode: single
+    triggers:
+      - trigger: time_pattern
+        minutes: "/5"
+      - trigger: state
+        entity_id:
+          - sensor.ipoken24_rain_rate
+          - sensor.ipoken24_rain_today
+          - sensor.ipoken24_last_report
+      - trigger: homeassistant
+        event: start
+    conditions:
+      - condition: template
+        value_template: >
+          {{ states('sensor.ipoken24_rain_rate') | is_number
+             and states('sensor.ipoken24_rain_today') | is_number
+             and states('sensor.ipoken24_last_report') not in ['unknown', 'unavailable', 'none', ''] }}
+    actions:
+      - action: mqtt.publish
+        data:
+          topic: victron/ess/station
+          retain: true
+          payload: >
+            {{ {'rate': states('sensor.ipoken24_rain_rate') | float(0),
+                'today': states('sensor.ipoken24_rain_today') | float(0),
+                'obs_ts': as_timestamp(states('sensor.ipoken24_last_report'), 0) | int(0),
+                'ts': now().timestamp() | int} | tojson }}

@@ -2,6 +2,18 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.12 - 2026-11-11
+**Observed rain at the Moyle Street station now drives the weather export hold**
+- When the Moyle Street station (Weather Underground IPOKEN24, under 1 km away) has reported within the last 120 min, its OBSERVED rain is used for the hold instead of the Open-Meteo forecast: no rain there = no cap (even if the forecast says rain or a thunderstorm), raining (>= 0.1 mm/h) = -2000 W, heavy (>= 4 mm/h) = -150 W, and the hold lingers 30 min after rain was last seen (rate, or today's total rising). If the station is older than 120 min, unavailable, or no message has arrived, the forecast is used exactly as in v16.11.
+- Freshness uses the station's own observation time (`obs_ts`, from `sensor.ipoken24_last_report`), not when Home Assistant polled, so a dead station is caught even while HA keeps polling.
+- New nodes in group 7: `<- victron/ess/station (Moyle St rain)` (MQTT in, retained, existing `mqtt_ha` broker) and `Station rain (Moyle St)` which stores flow `stationRain` and shows rate / today / age on its status.
+- New HA package `homeassistant/ess_station_rain.yaml` publishes `victron/ess/station` every 5 min and on any sensor change. It must be added to Home Assistant (`config/packages/`) for the override to work; without it the flow behaves as v16.11.
+- CONFIG `weatherImpact.station`: `enabled`, `maxAgeMin` (120), `overridesForecast` (true; false = station can only add to the forecast hold), `rainMmH` (0.1), `heavyMmH` (4), `holdAfterRainMin` (30).
+- The SoC rules are unchanged and apply to either source: hold paused at SoC >= 90 % (resumes at 85 %), 60 % export floor while the hold applies, nothing after 19:00.
+- Status line: `WX HOLD Rain (Moyle St) cap -2000W` or `WX Rain forecast ignored (Moyle St dry)`; `victron/ess/state` adds `stationRain`.
+- Trade-off: with `overridesForecast` true a thunderstorm that is forecast but has not reached the station yet does not hold export until rain is actually measured there.
+- Tested offline (26 scenarios): fresh dry station beats forecast rain and storm; rain, heavy and 30 min linger; stale (121 min) and missing data fall back to the forecast; `overridesForecast` false and `enabled` false; SoC 97 pause, 60 % floor and the armed big-day latch with a rainy and a dry station; station message parsing and bad payloads.
+
 ## v16.11 - 2026-11-11
 **Weather hold no longer caps export on unlikely rain or when the battery is nearly full**
 - Problem: with 97% SoC, 8 kW of PV and a 40% shower chance, the hold capped export at -2000 W (curtailing solar and missing a big export window). Cause 1: the v16.8 detector only checked the rain probability on one branch - any hour with >= 0.5 mm/h forecast counted as rain whatever the chance, and heavy rain / thunderstorm codes ignored it entirely. Cause 2: the hold applied at any SoC.
