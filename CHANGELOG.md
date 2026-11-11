@@ -2,6 +2,14 @@
 
 Newest first. Each entry = one commit + tag; `git show <tag>:flows.json` restores that version.
 
+## v16.11 - 2026-11-11
+**Weather hold no longer caps export on unlikely rain or when the battery is nearly full**
+- Problem: with 97% SoC, 8 kW of PV and a 40% shower chance, the hold capped export at -2000 W (curtailing solar and missing a big export window). Cause 1: the v16.8 detector only checked the rain probability on one branch - any hour with >= 0.5 mm/h forecast counted as rain whatever the chance, and heavy rain / thunderstorm codes ignored it entirely. Cause 2: the hold applied at any SoC.
+- Detector: an hour now only counts if its precipitation probability is >= `weatherImpact.probMin` (60). Hours below that are ignored for rain, heavy rain and thunderstorm. If the forecast has no probability data the hour counts (fail safe).
+- Hold pause: while SoC >= `suspendAboveSocPct` (90) the hold is paused and the controller exports as normal (big-day latch and PV override work as usual). It re-engages once SoC has dropped to `resumeBelowSocPct` (85), so a genuine rain forecast still keeps the battery around 85-90%. The 60% export floor, caps and the 19:00 hand-over are unchanged.
+- Status line shows `WX Rain forecast - hold paused (SoC 97%)`; `state.weatherHold` is `{label, paused: true}` while paused.
+- Tested offline: 40% shower chance ignored, 70% counted; heavy / storm codes ignored below 60%; SoC 97 / 91 / 88 export normally, 85 re-engages the rain cap, 87 stays capped, 91 pauses again; storm halts at 84, floor still holds at 60; big-day latch runs while paused and is held to the cap below 85.
+
 ## v16.10 - 2026-11-09
 **Minimum SoC lowered from 20% to 15%**
 - `CONFIG.minSocNormal` 20 -> 15. This is the ESS "Minimum SOC" the controller writes to the Cerbo in every mode except FREECHARGE (which still writes 100%). Below this SoC the Victron ESS stops discharging and the house imports from the grid, so the battery now carries the house 5 points (about 1.4 kWh of the 28.68 kWh pack) further before importing.
